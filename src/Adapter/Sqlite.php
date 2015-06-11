@@ -77,9 +77,8 @@ class Sqlite implements AdapterInterface
      */
     public function __construct($db, $table = 'pop_cache', $pdo = false)
     {
-        $this->db    = $db;
-        $this->table = addslashes($table);
-        $dir         = dirname($this->db);
+        $this->db = $db;
+        $dir      = dirname($this->db);
 
         // If the database file doesn't exist, create it.
         if (!file_exists($this->db)) {
@@ -118,7 +117,9 @@ class Sqlite implements AdapterInterface
             $this->sqlite = new \SQLite3($this->db);
         }
 
-        $this->checkTable();
+        if (null !== $table) {
+            $this->setTable($table);
+        }
     }
 
     /**
@@ -149,7 +150,9 @@ class Sqlite implements AdapterInterface
      */
     public function setTable($table)
     {
-        return $this->table = addslashes($table);
+        $this->table = addslashes($table);
+        $this->checkTable();
+        return $this;
     }
 
     /**

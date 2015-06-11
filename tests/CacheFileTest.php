@@ -1,6 +1,6 @@
 <?php
 
-namespace Pop\Acl\Test;
+namespace Pop\Cache\Test;
 
 use Pop\Cache\Adapter\File;
 
