@@ -10,7 +10,6 @@ before_script:
 language: php
 php:
     - 5.4
-    - 5.5
 script:
     - ./vendor/bin/phpunit
 notifications:
