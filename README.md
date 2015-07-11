@@ -5,14 +5,16 @@ Pop Cache
 
 OVERVIEW
 --------
-Pop Cache is a component of the Pop PHP Framework 2. It provides the ability to cache frequently accessed
-content via several different adapters. Depending on the server environment and what's available, an
-application can use one of the following cache adapters:
+`pop-cache` provides the ability to cache frequently accessed content via several different adapters.
+Depending on the server environment and what's available, an application can use one of the following
+cache adapters:
 
 * File (directory on disk)
 * Sqlite (database file on disk)
 * Apc (cache service in memory)
 * Memcached (cache service in memory)
+
+`pop-cache` is a component of the [Pop PHP Framework 2](http://www.popphp.org/).
 
 INSTALL
 -------
