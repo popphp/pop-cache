@@ -34,7 +34,7 @@ class CacheSqliteTest extends \PHPUnit_Framework_TestCase
         $cache->remove('foo');
         $this->assertFalse($cache->load('foo', 0));
         $cache->clear();
-        $cache->delete();
+        $cache->delete(true);
         $this->assertFalse(file_exists(__DIR__ . '/cache/cache.sqilte'));
         rmdir(__DIR__ . '/cache');
     }

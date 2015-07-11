@@ -2,9 +2,7 @@
 /**
  * Pop PHP Framework (http://www.popphp.org/)
  *
- * @link       https://github.com/popphp/popphp
- * @category   Pop
- * @package    Pop_Cache
+ * @link       https://github.com/popphp/popphp-framework
  * @author     Nick Sagona, III <dev@nolainteractive.com>
  * @copyright  Copyright (c) 2009-2015 NOLA Interactive, LLC. (http://www.nolainteractive.com)
  * @license    http://www.popphp.org/license     New BSD License
@@ -249,11 +247,17 @@ class Sqlite implements AdapterInterface
     /**
      * Clear all stored values from cache.
      *
+     * @param  boolean $del
      * @return void
      */
-    public function clear()
+    public function clear($del = false)
     {
         $this->query("DELETE FROM " . $this->table);
+
+        // If the delete flag was passed, remove the entire database
+        if ($del) {
+            $this->delete();
+        }
     }
 
     /**

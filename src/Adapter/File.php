@@ -2,9 +2,7 @@
 /**
  * Pop PHP Framework (http://www.popphp.org/)
  *
- * @link       https://github.com/popphp/popphp
- * @category   Pop
- * @package    Pop_Cache
+ * @link       https://github.com/popphp/popphp-framework
  * @author     Nick Sagona, III <dev@nolainteractive.com>
  * @copyright  Copyright (c) 2009-2015 NOLA Interactive, LLC. (http://www.nolainteractive.com)
  * @license    http://www.popphp.org/license     New BSD License
@@ -148,8 +146,22 @@ class File implements AdapterInterface
 
         // If the delete flag was passed, remove the top level directory.
         if ($del) {
-            @rmdir($path);
+            $this->delete($path);
         }
+    }
+
+    /**
+     * Method to delete the top level directory
+     *
+     * @param  string  $path
+     * @return void
+     */
+    public function delete($path = null)
+    {
+        if (null === $path) {
+            $path = $this->dir;
+        }
+        @rmdir($path);
     }
 
 }
