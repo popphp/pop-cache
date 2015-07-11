@@ -14,12 +14,12 @@ cache adapters:
 * Apc (cache service in memory)
 * Memcached (cache service in memory)
 
-`pop-cache` is a component of the [Pop PHP Framework 2](http://www.popphp.org/).
+`pop-cache` is a component of the [Pop PHP Framework](http://www.popphp.org/).
 
 INSTALL
 -------
 
-Install `Pop Cache` using Composer.
+Install `pop-cache` using Composer.
 
     composer require popphp/pop-cache
 
