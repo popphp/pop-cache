@@ -163,10 +163,26 @@ class Sqlite implements AdapterInterface
      */
     public function save($id, $value, $time)
     {
+        // Determine if the value already exists.
         $timestamp = ($time != 0) ? time() + (int)$time : 0;
+        $rows      = [];
+
+        $this->prepare("SELECT * FROM " . $this->table . " WHERE id = :id")
+             ->bindParams(['id' => sha1($id)])
+             ->execute();
+
+        if ($this->isPdo) {
+            while (($row = $this->result->fetchAll(\PDO::FETCH_ASSOC)) != false) {
+                $rows[] = $row;
+            }
+        } else {
+            while (($row = $this->result->fetchArray(SQLITE3_ASSOC)) != false) {
+                $rows[] = $row;
+            }
+        }
 
         // If the value doesn't exist, save the new value.
-        if (!$this->load($id, $time)) {
+        if (count($rows) == 0) {
             $sql = "INSERT INTO " . $this->table .
                 " (id, value, time) VALUES (:id, :value, :time)";
             $params = [
