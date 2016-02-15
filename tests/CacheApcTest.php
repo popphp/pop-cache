@@ -19,6 +19,10 @@ class CacheApcTest extends \PHPUnit_Framework_TestCase
         $cache = new Apc();
         $cache->save('foo', 'bar');
         $this->assertEquals('bar', $cache->load('foo'));
+        $this->assertFalse($cache->isExpired('foo'));
+        $this->assertTrue(is_numeric($cache->getStart('foo')));
+        $this->assertTrue(is_numeric($cache->getExpiration('foo')));
+        $this->assertTrue(is_numeric($cache->getLifetime('foo')));
     }
 
     public function testRemove()
