@@ -21,9 +21,9 @@ namespace Pop\Cache\Adapter;
  * @author     Nick Sagona, III <dev@nolainteractive.com>
  * @copyright  Copyright (c) 2009-2015 NOLA Interactive, LLC. (http://www.nolainteractive.com)
  * @license    http://www.popphp.org/license     New BSD License
- * @version    2.0.0
+ * @version    2.0.1
  */
-class File implements AdapterInterface
+class File extends AbstractAdapter
 {
 
     /**
@@ -38,10 +38,23 @@ class File implements AdapterInterface
      * Instantiate the cache file object
      *
      * @param  string $dir
+     * @param  int    $lifetime
+     * @return File
+     */
+    public function __construct($dir, $lifetime = 0)
+    {
+        parent::__construct($lifetime);
+        $this->setDir($dir);
+    }
+
+    /**
+     * Set the current cache dir.
+     *
+     * @param  string $dir
      * @throws Exception
      * @return File
      */
-    public function __construct($dir)
+    public function setDir($dir)
     {
         if (!file_exists($dir)) {
             throw new Exception('Error: That cache directory does not exist.');
@@ -50,6 +63,8 @@ class File implements AdapterInterface
         }
 
         $this->dir = realpath($dir);
+
+        return $this;
     }
 
     /**
@@ -67,32 +82,40 @@ class File implements AdapterInterface
      *
      * @param  string $id
      * @param  mixed  $value
-     * @param  string $time
-     * @return void
+     * @return File
      */
-    public function save($id, $value, $time)
+    public function save($id, $value)
     {
         $file = $this->dir . DIRECTORY_SEPARATOR . sha1($id);
-        $timestamp = ($time != 0) ? time() + (int)$time : 0;
-        file_put_contents($file, serialize(['timestamp' => $timestamp, 'value' => $value]));
+
+        $cacheValue = [
+            'start'    => time(),
+            'expire'   => ($this->lifetime != 0) ? time() + $this->lifetime : 0,
+            'lifetime' => $this->lifetime,
+            'value'    => $value
+        ];
+        file_put_contents($file, serialize($cacheValue));
+
+        return $this;
     }
 
     /**
      * Load a value from cache.
      *
      * @param  string $id
-     * @param  string $time
      * @return mixed
      */
-    public function load($id, $time)
+    public function load($id)
     {
         $fileId = $this->dir . DIRECTORY_SEPARATOR . sha1($id);
-        $value = false;
+        $value  = false;
 
         if (file_exists($fileId)) {
-            $data = unserialize(file_get_contents($fileId));
-            if (($data['timestamp'] == 0) || ((time() - $data['timestamp']) <= $time)) {
-                $value = $data['value'];
+            $cacheValue = unserialize(file_get_contents($fileId));
+            if (($cacheValue['expire'] == 0) || ((time() - $cacheValue['expire']) <= $cacheValue['lifetime'])) {
+                $value = $cacheValue['value'];
+            } else {
+                $this->remove($id);
             }
         }
 
@@ -103,7 +126,7 @@ class File implements AdapterInterface
      * Remove a value in cache.
      *
      * @param  string $id
-     * @return void
+     * @return File
      */
     public function remove($id)
     {
@@ -111,6 +134,8 @@ class File implements AdapterInterface
         if (file_exists($fileId)) {
             unlink($fileId);
         }
+
+        return $this;
     }
 
     /**
@@ -118,7 +143,7 @@ class File implements AdapterInterface
      *
      * @param  boolean $del
      * @param  string  $path
-     * @return void
+     * @return File
      */
     public function clear($del = false, $path = null)
     {
@@ -148,13 +173,15 @@ class File implements AdapterInterface
         if ($del) {
             $this->delete($path);
         }
+
+        return $this;
     }
 
     /**
      * Method to delete the top level directory
      *
      * @param  string  $path
-     * @return void
+     * @return File
      */
     public function delete($path = null)
     {
@@ -162,6 +189,76 @@ class File implements AdapterInterface
             $path = $this->dir;
         }
         @rmdir($path);
+
+        return $this;
+    }
+
+    /**
+     * Tell is a value is expired.
+     *
+     * @param  string $id
+     * @return boolean
+     */
+    public function isExpired($id)
+    {
+        return ($this->load($id) === false);
+    }
+
+    /**
+     * Get original start timestamp of the value.
+     *
+     * @param  string $id
+     * @return int
+     */
+    public function getStart($id)
+    {
+        $fileId = $this->dir . DIRECTORY_SEPARATOR . sha1($id);
+        $value  = 0;
+
+        if (file_exists($fileId)) {
+            $cacheValue = unserialize(file_get_contents($fileId));
+            $value      = $cacheValue['start'];
+        }
+
+        return $value;
+    }
+
+    /**
+     * Get expiration timestamp of the value.
+     *
+     * @param  string $id
+     * @return int
+     */
+    public function getExpiration($id)
+    {
+        $fileId = $this->dir . DIRECTORY_SEPARATOR . sha1($id);
+        $value  = 0;
+
+        if (file_exists($fileId)) {
+            $cacheValue = unserialize(file_get_contents($fileId));
+            $value      = $cacheValue['expire'];
+        }
+
+        return $value;
+    }
+
+    /**
+     * Get the lifetime of the value.
+     *
+     * @param  string $id
+     * @return int
+     */
+    public function getLifetime($id)
+    {
+        $fileId = $this->dir . DIRECTORY_SEPARATOR . sha1($id);
+        $value  = 0;
+
+        if (file_exists($fileId)) {
+            $cacheValue = unserialize(file_get_contents($fileId));
+            $value      = $cacheValue['lifetime'];
+        }
+
+        return $value;
     }
 
 }

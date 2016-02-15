@@ -21,9 +21,9 @@ namespace Pop\Cache\Adapter;
  * @author     Nick Sagona, III <dev@nolainteractive.com>
  * @copyright  Copyright (c) 2009-2015 NOLA Interactive, LLC. (http://www.nolainteractive.com)
  * @license    http://www.popphp.org/license     New BSD License
- * @version    2.0.0
+ * @version    2.0.1
  */
-class Memcached implements AdapterInterface
+class Memcached extends AbstractAdapter
 {
 
     /**
@@ -43,13 +43,15 @@ class Memcached implements AdapterInterface
      *
      * Instantiate the memcache cache object
      *
+     * @param  int    $lifetime
      * @param  string $host
      * @param  int    $port
      * @throws Exception
      * @return Memcached
      */
-    public function __construct($host = 'localhost', $port = 11211)
+    public function __construct($lifetime = 0, $host = 'localhost', $port = 11211)
     {
+        parent::__construct($lifetime);
         if (!class_exists('Memcache', false)) {
             throw new Exception('Error: Memcache is not available.');
         }
@@ -77,45 +79,125 @@ class Memcached implements AdapterInterface
      *
      * @param  string $id
      * @param  mixed  $value
-     * @param  string $time
-     * @return void
+     * @return Memcached
      */
-    public function save($id, $value, $time)
+    public function save($id, $value)
     {
-        $this->memcache->set($id, $value, false, (int)$time);
+        $cacheValue = [
+            'start'    => time(),
+            'expire'   => ($this->lifetime != 0) ? time() + $this->lifetime : 0,
+            'lifetime' => $this->lifetime,
+            'value'    => $value
+        ];
+
+        $this->memcache->set($id, $cacheValue, false, $this->lifetime);
+        return $this;
     }
 
     /**
      * Load a value from cache.
      *
      * @param  string $id
-     * @param  string $time
      * @return mixed
      */
-    public function load($id, $time)
+    public function load($id)
     {
-        return $this->memcache->get($id);
+        $cacheValue = $this->memcache->get($id);
+        $value      = false;
+
+        if ($cacheValue !== false) {
+            $value = $cacheValue['value'];
+        }
+
+        return $value;
     }
 
     /**
      * Remove a value in cache.
      *
      * @param  string $id
-     * @return void
+     * @return Memcached
      */
     public function remove($id)
     {
         $this->memcache->delete($id);
+        return $this;
     }
 
     /**
      * Clear all stored values from cache.
      *
-     * @return void
+     * @return Memcached
      */
     public function clear()
     {
         $this->memcache->flush();
+        return $this;
+    }
+
+    /**
+     * Tell is a value is expired.
+     *
+     * @param  string $id
+     * @return boolean
+     */
+    public function isExpired($id)
+    {
+        return ($this->load($id) === false);
+    }
+
+    /**
+     * Get original start timestamp of the value.
+     *
+     * @param  string $id
+     * @return int
+     */
+    public function getStart($id)
+    {
+        $cacheValue = $this->memcache->get($id);
+        $value      = 0;
+
+        if ($cacheValue !== false) {
+            $value = $cacheValue['start'];
+        }
+
+        return $value;
+    }
+
+    /**
+     * Get expiration timestamp of the value.
+     *
+     * @param  string $id
+     * @return int
+     */
+    public function getExpiration($id)
+    {
+        $cacheValue = $this->memcache->get($id);
+        $value      = 0;
+
+        if ($cacheValue !== false) {
+            $value = $cacheValue['expire'];
+        }
+
+        return $value;
+    }
+
+    /**
+     * Get the lifetime of the value.
+     *
+     * @param  string $id
+     * @return int
+     */
+    public function getLifetime($id)
+    {
+        $cacheValue = $this->memcache->get($id);
+        $value      = 0;
+
+        if ($cacheValue !== false) {
+            $value = $cacheValue['lifetime'];
+        }
+
+        return $value;
     }
 
 }

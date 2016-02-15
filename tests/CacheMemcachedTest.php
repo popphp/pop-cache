@@ -18,17 +18,17 @@ class CacheMemcachedTest extends \PHPUnit_Framework_TestCase
     public function testSaveAndLoad()
     {
         $cache = new Memcached();
-        $cache->save('foo', 'bar', 0);
-        $this->assertEquals('bar', $cache->load('foo', 0));
+        $cache->save('foo', 'bar');
+        $this->assertEquals('bar', $cache->load('foo'));
     }
 
     public function testRemove()
     {
         $cache = new Memcached();
-        $cache->save('foo', 'bar', 0);
-        $this->assertEquals('bar', $cache->load('foo', 0));
+        $cache->save('foo', 'bar');
+        $this->assertEquals('bar', $cache->load('foo'));
         $cache->remove('foo');
-        $this->assertFalse($cache->load('foo', 0));
+        $this->assertFalse($cache->load('foo'));
         $cache->clear();
     }
 

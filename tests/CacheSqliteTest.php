@@ -22,20 +22,20 @@ class CacheSqliteTest extends \PHPUnit_Framework_TestCase
     public function testSaveAndLoad()
     {
         $cache = new Sqlite(__DIR__ . '/cache/cache.sqlite');
-        $cache->save('foo', 'bar', 0);
-        $this->assertEquals('bar', $cache->load('foo', 0));
+        $cache->save('foo', 'bar');
+        $this->assertEquals('bar', $cache->load('foo'));
     }
 
     public function testRemove()
     {
         $cache = new Sqlite(__DIR__ . '/cache/cache.sqlite');
-        $cache->save('foo', 'bar', 0);
-        $this->assertEquals('bar', $cache->load('foo', 0));
+        $cache->save('foo', 'bar');
+        $this->assertEquals('bar', $cache->load('foo'));
         $cache->remove('foo');
-        $this->assertFalse($cache->load('foo', 0));
+        $this->assertFalse($cache->load('foo'));
         $cache->clear();
-        $cache->delete(true);
-        $this->assertFalse(file_exists(__DIR__ . '/cache/cache.sqilte'));
+        $cache->delete();
+        $this->assertFalse(file_exists(__DIR__ . '/cache/cache.sqlite'));
         rmdir(__DIR__ . '/cache');
     }
 

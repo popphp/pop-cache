@@ -14,7 +14,7 @@
 namespace Pop\Cache\Adapter;
 
 /**
- * Cache adapter interface
+ * Cache adapter abstract class
  *
  * @category   Pop
  * @package    Pop_Cache
@@ -23,16 +23,39 @@ namespace Pop\Cache\Adapter;
  * @license    http://www.popphp.org/license     New BSD License
  * @version    2.0.1
  */
-interface AdapterInterface
+abstract class AbstractAdapter implements AdapterInterface
 {
+
+    /**
+     * Cache lifetime
+     * @var int
+     */
+    protected $lifetime = 0;
+
+    /**
+     * Constructor
+     *
+     * Instantiate the cache object
+     *
+     * @param  int $lifetime
+     * @return AbstractAdapter
+     */
+    public function __construct($lifetime = 0)
+    {
+        $this->setLifetime($lifetime);
+    }
 
     /**
      * Set the lifetime.
      *
      * @param  int $lifetime
-     * @return AdapterInterface
+     * @return AbstractAdapter
      */
-    public function setLifetime($lifetime);
+    public function setLifetime($lifetime)
+    {
+        $this->lifetime = (int)$lifetime;
+        return $this;
+    }
 
     /**
      * Save a value to cache.
@@ -41,7 +64,7 @@ interface AdapterInterface
      * @param  mixed  $value
      * @return void
      */
-    public function save($id, $value);
+    abstract public function save($id, $value);
 
     /**
      * Load a value from cache.
@@ -49,7 +72,7 @@ interface AdapterInterface
      * @param  string $id
      * @return mixed
      */
-    public function load($id);
+    abstract public function load($id);
 
     /**
      * Remove a value in cache.
@@ -57,14 +80,14 @@ interface AdapterInterface
      * @param  string $id
      * @return void
      */
-    public function remove($id);
+    abstract public function remove($id);
 
     /**
      * Clear all stored values from cache.
      *
      * @return void
      */
-    public function clear();
+    abstract public function clear();
 
     /**
      * Tell is a value is expired.
@@ -72,7 +95,7 @@ interface AdapterInterface
      * @param  string $id
      * @return boolean
      */
-    public function isExpired($id);
+    abstract public function isExpired($id);
 
     /**
      * Get original start timestamp of the value.
@@ -80,7 +103,7 @@ interface AdapterInterface
      * @param  string $id
      * @return int
      */
-    public function getStart($id);
+    abstract public function getStart($id);
 
     /**
      * Get expiration timestamp of the value.
@@ -88,7 +111,7 @@ interface AdapterInterface
      * @param  string $id
      * @return int
      */
-    public function getExpiration($id);
+    abstract public function getExpiration($id);
 
     /**
      * Get the lifetime of the value.
@@ -96,6 +119,6 @@ interface AdapterInterface
      * @param  string $id
      * @return int
      */
-    public function getLifetime($id);
+    abstract public function getLifetime($id);
 
 }

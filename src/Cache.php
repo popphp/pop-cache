@@ -12,6 +12,7 @@
  * @namespace
  */
 namespace Pop\Cache;
+use Pop\Cache\Adapter\AdapterInterface;
 
 /**
  * Cache class
@@ -21,20 +22,14 @@ namespace Pop\Cache;
  * @author     Nick Sagona, III <dev@nolainteractive.com>
  * @copyright  Copyright (c) 2009-2015 NOLA Interactive, LLC. (http://www.nolainteractive.com)
  * @license    http://www.popphp.org/license     New BSD License
- * @version    2.0.0
+ * @version    2.0.1
  */
 class Cache
 {
 
     /**
-     * Lifetime value, in seconds
-     * @var int
-     */
-    protected $lifetime = 0;
-
-    /**
      * Cache adapter
-     * @var mixed
+     * @var AdapterInterface
      */
     protected $adapter = null;
 
@@ -44,13 +39,11 @@ class Cache
      * Instantiate the cache object
      *
      * @param  Adapter\AdapterInterface $adapter
-     * @param  int                      $lifetime
      * @return Cache
      */
-    public function __construct(Adapter\AdapterInterface $adapter, $lifetime = 0)
+    public function __construct(Adapter\AdapterInterface $adapter)
     {
-        $this->lifetime = $lifetime;
-        $this->adapter  = $adapter;
+        $this->setAdapter($adapter);
     }
 
     /**
@@ -87,7 +80,29 @@ class Cache
     }
 
     /**
+     * Set the adapter
+     *
+     * @param  Adapter\AdapterInterface $adapter
+     * @return Cache
+     */
+    public function setAdapter(Adapter\AdapterInterface $adapter)
+    {
+        $this->adapter = $adapter;
+        return $this;
+    }
+
+    /**
      * Get the adapter
+     *
+     * @return mixed
+     */
+    public function getAdapter()
+    {
+        return $this->adapter;
+    }
+
+    /**
+     * Get the adapter (alias method)
      *
      * @return mixed
      */
@@ -97,37 +112,16 @@ class Cache
     }
 
     /**
-     * Set the cache lifetime.
-     *
-     * @param  int $time
-     * @return Cache
-     */
-    public function setLifetime($time = 0)
-    {
-        $this->lifetime = (int)$time;
-        return $this;
-    }
-
-    /**
-     * Get the cache lifetime.
-     *
-     * @return int
-     */
-    public function getLifetime()
-    {
-        return $this->lifetime;
-    }
-
-    /**
      * Save a value to cache.
      *
      * @param  string $id
      * @param  mixed  $value
-     * @return void
+     * @return Cache
      */
     public function save($id, $value)
     {
-        $this->adapter->save($id, $value, $this->lifetime);
+        $this->adapter->save($id, $value);
+        return $this;
     }
 
     /**
@@ -138,25 +132,26 @@ class Cache
      */
     public function load($id)
     {
-        return $this->adapter->load($id, $this->lifetime);
+        return $this->adapter->load($id);
     }
 
     /**
      * Remove a value in cache.
      *
      * @param  string $id
-     * @return void
+     * @return Cache
      */
     public function remove($id)
     {
         $this->adapter->remove($id);
+        return $this;
     }
 
     /**
      * Clear all stored values from cache.
      *
      * @param  boolean $del
-     * @return void
+     * @return Cache
      */
     public function clear($del = false)
     {
@@ -165,6 +160,51 @@ class Cache
         } else {
             $this->adapter->clear();
         }
+        return $this;
+    }
+
+    /**
+     * Tell is a value is expired.
+     *
+     * @param  string $id
+     * @return boolean
+     */
+    public function isExpired($id)
+    {
+        return $this->adapter->isExpired($id);
+    }
+
+    /**
+     * Get original start timestamp of the value.
+     *
+     * @param  string $id
+     * @return int
+     */
+    public function getStart($id)
+    {
+        return $this->adapter->getStart($id);
+    }
+
+    /**
+     * Get expiration timestamp of the value.
+     *
+     * @param  string $id
+     * @return int
+     */
+    public function getExpiration($id)
+    {
+        return $this->adapter->getExpiration($id);
+    }
+
+    /**
+     * Get the lifetime of the value.
+     *
+     * @param  string $id
+     * @return int
+     */
+    public function getLifetime($id)
+    {
+        return $this->adapter->getLifetime($id);
     }
 
 }
