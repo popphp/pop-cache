@@ -34,16 +34,16 @@ use Pop\Cache\Cache;
 use Pop\Cache\Adapter;
 
 // Using the file adapter object, with a 5 minute lifetime
-$fileCache = new Cache(new Adapter\File('/path/to/my/cache/dir'), 300);
+$fileCache = new Cache(new Adapter\File('/path/to/my/cache/dir', 300));
 
 // Using the file adapter object, with a 5 minute lifetime
-$dbCache = new Cache(new Adapter\Sqlite('/path/to/my/.htcachedb.sqlite'), 300);
+$dbCache = new Cache(new Adapter\Sqlite('/path/to/my/.htcachedb.sqlite', 300));
 
 // Using the apc adapter object, with a 5 minute lifetime
-$apcCache = new Cache(new Adapter\Apc(), 300);
+$apcCache = new Cache(new Adapter\Apc(300));
 
 // Using the memcached adapter object, with a 5 minute lifetime
-$memCache = new Cache(new Adapter\Memcached(), 300);
+$memCache = new Cache(new Adapter\Memcached(300));
 ```
 
 ### Saving and recalling data from cache
