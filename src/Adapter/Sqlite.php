@@ -258,7 +258,7 @@ class Sqlite extends AbstractAdapter
         // If the value is found, check expiration and return.
         if (count($rows) > 0) {
             $cacheValue = $rows[0];
-            if (($cacheValue['expire'] == 0) || ((time() - $cacheValue['expire']) <= $cacheValue['lifetime'])) {
+            if (($cacheValue['expire'] == 0) || ((time() - $cacheValue['start']) <= $cacheValue['lifetime'])) {
                 $value = unserialize($cacheValue['value']);
             } else {
                 $this->remove($id);

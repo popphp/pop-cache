@@ -112,7 +112,7 @@ class File extends AbstractAdapter
 
         if (file_exists($fileId)) {
             $cacheValue = unserialize(file_get_contents($fileId));
-            if (($cacheValue['expire'] == 0) || ((time() - $cacheValue['expire']) <= $cacheValue['lifetime'])) {
+            if (($cacheValue['expire'] == 0) || ((time() - $cacheValue['start']) <= $cacheValue['lifetime'])) {
                 $value = $cacheValue['value'];
             } else {
                 $this->remove($id);
