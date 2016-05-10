@@ -2,7 +2,7 @@ pop-cache
 =========
 
 [![Build Status](https://travis-ci.org/popphp/pop-cache.svg?branch=master)](https://travis-ci.org/popphp/pop-cache)
-[![Coverage Status](http://www.popphp.org/cc/coverage.php?comp=pop-cache)](http://www.popphp.org/cc/pop-cache/)
+[![Coverage Status](http://cc.popphp.org/coverage.php?comp=pop-cache)](http://cc.popphp.org/pop-cache/)
 
 OVERVIEW
 --------
