@@ -49,11 +49,6 @@ class CacheTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse($cache1->load('foo'));
         $this->assertFalse($cache1->load('baz'));
         rmdir(__DIR__ . '/cache');
-
-        $cache2 = new Cache(new Adapter\Apc());
-        $cache2->save('foo', 'bar');
-        $cache2->clear();
-        $this->assertFalse($cache2->load('foo'));
     }
 
 }
