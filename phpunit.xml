@@ -11,6 +11,8 @@
             <exclude>
                 <file>src/Adapter/Apc.php</file>
                 <file>src/Adapter/Memcached.php</file>
+                <file>src/Adapter/Redis.php</file>
+                <file>src/Adapter/Session.php</file>
             </exclude>
         </whitelist>
     </filter>

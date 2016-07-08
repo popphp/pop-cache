@@ -14,7 +14,7 @@
 namespace Pop\Cache\Adapter;
 
 /**
- * APC cache adapter class
+ * Session adapter cache class
  *
  * @category   Pop
  * @package    Pop_Cache
@@ -23,49 +23,34 @@ namespace Pop\Cache\Adapter;
  * @license    http://www.popphp.org/license     New BSD License
  * @version    2.2.0
  */
-class Apc extends AbstractAdapter
+class Session extends AbstractAdapter
 {
-
-    /**
-     * APC info
-     * @var array
-     */
-    protected $info = null;
 
     /**
      * Constructor
      *
-     * Instantiate the APC cache object
+     * Instantiate the cache session object
      *
      * @param  int $lifetime
-     * @throws Exception
-     * @return Apc
+     * @return Session
      */
     public function __construct($lifetime = 0)
     {
         parent::__construct($lifetime);
-        if (!function_exists('apc_cache_info')) {
-            throw new Exception('Error: APC is not available.');
+        if (session_id() == '') {
+            session_start();
         }
-        $this->info = apc_cache_info();
+        if (!isset($_SESSION['_POP_CACHE'])) {
+            $_SESSION['_POP_CACHE'] = [];
+        }
     }
 
     /**
-     * Method to get the current APC info.
-     *
-     * @return string
-     */
-    public function getInfo()
-    {
-        return $this->info;
-    }
-
-    /**
-     * Method to save a value to cache.
+     * Save a value to cache.
      *
      * @param  string $id
      * @param  mixed  $value
-     * @return Apc
+     * @return Session
      */
     public function save($id, $value)
     {
@@ -76,49 +61,56 @@ class Apc extends AbstractAdapter
             'value'    => $value
         ];
 
-        apc_store($id, $cacheValue, $this->lifetime);
+        $_SESSION['_POP_CACHE'][$id] = serialize($cacheValue);
+
         return $this;
     }
 
     /**
-     * Method to load a value from cache.
+     * Load a value from cache.
      *
      * @param  string $id
      * @return mixed
      */
     public function load($id)
     {
-        $cacheValue = apc_fetch($id);
-        $value      = false;
+        $value  = false;
 
-        if ($cacheValue !== false) {
-            $value = $cacheValue['value'];
+        if (isset($_SESSION['_POP_CACHE'][$id])) {
+            $cacheValue = unserialize($_SESSION['_POP_CACHE'][$id]);
+            if (($cacheValue['expire'] == 0) || ((time() - $cacheValue['start']) <= $cacheValue['lifetime'])) {
+                $value = $cacheValue['value'];
+            } else {
+                $this->remove($id);
+            }
         }
 
         return $value;
     }
 
     /**
-     * Method to delete a value in cache.
+     * Remove a value in cache.
      *
      * @param  string $id
-     * @return Apc
+     * @return Session
      */
     public function remove($id)
     {
-        apc_delete($id);
+        if (isset($_SESSION['_POP_CACHE'][$id])) {
+            unset($_SESSION['_POP_CACHE'][$id]);
+        }
+
         return $this;
     }
 
     /**
-     * Method to clear all stored values from cache.
+     * Clear all stored values from cache.
      *
-     * @return Apc
+     * @return Session
      */
     public function clear()
     {
-        apc_clear_cache();
-        apc_clear_cache('user');
+        $_SESSION['_POP_CACHE'] = [];
         return $this;
     }
 
@@ -141,11 +133,11 @@ class Apc extends AbstractAdapter
      */
     public function getStart($id)
     {
-        $cacheValue = apc_fetch($id);
-        $value      = 0;
+        $value = 0;
 
-        if ($cacheValue !== false) {
-            $value = $cacheValue['start'];
+        if (isset($_SESSION['_POP_CACHE'][$id])) {
+            $cacheValue = unserialize($_SESSION['_POP_CACHE'][$id]);
+            $value      = $cacheValue['start'];
         }
 
         return $value;
@@ -159,11 +151,11 @@ class Apc extends AbstractAdapter
      */
     public function getExpiration($id)
     {
-        $cacheValue = apc_fetch($id);
-        $value      = 0;
+        $value = 0;
 
-        if ($cacheValue !== false) {
-            $value = $cacheValue['expire'];
+        if (isset($_SESSION['_POP_CACHE'][$id])) {
+            $cacheValue = unserialize($_SESSION['_POP_CACHE'][$id]);
+            $value      = $cacheValue['expire'];
         }
 
         return $value;
@@ -177,11 +169,11 @@ class Apc extends AbstractAdapter
      */
     public function getLifetime($id)
     {
-        $cacheValue = apc_fetch($id);
-        $value      = 0;
+        $value = 0;
 
-        if ($cacheValue !== false) {
-            $value = $cacheValue['lifetime'];
+        if (isset($_SESSION['_POP_CACHE'][$id])) {
+            $cacheValue = unserialize($_SESSION['_POP_CACHE'][$id]);
+            $value      = $cacheValue['lifetime'];
         }
 
         return $value;
