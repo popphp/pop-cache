@@ -17,6 +17,14 @@ cache adapters:
 
 `pop-cache` is a component of the [Pop PHP Framework](http://www.popphp.org/).
 
+PHP 7
+-----
+
+While this component has been updated and tested to work with PHP 7, please note:
+
+- Due to the unavailability or instability of the **apc/apcu/apc_bc** extensions, the APC class adapter may not function properly in PHP 7.
+- Due to the unavailability or instability of the **memcache** extension, the Memcached class adapter will not function properly in PHP 7.
+
 INSTALL
 -------
 
