@@ -44,23 +44,16 @@ BASIC USAGE
 use Pop\Cache\Cache;
 use Pop\Cache\Adapter;
 
-// Using the apc adapter object, with a 5 minute lifetime
-$apc = new Cache(new Adapter\Apc(300));
+$apc       = new Adapter\Apc(300);
+$file      = new Adapter\File('/path/to/my/cache/dir', 300);
+$memcache  = new Adapter\Memcache(300);
+$memcached = new Adapter\Memcached(300);
+$redis     = new Adapter\Redis(300);
+$session   = new Adapter\Session(300);
+$sqlite    = new Adapter\Sqlite('/path/to/my/.htcachedb.sqlite', 300);
 
-// Using the file adapter object, with a 5 minute lifetime
-$file = new Cache(new Adapter\File('/path/to/my/cache/dir', 300));
-
-// Using the memcached adapter object, with a 5 minute lifetime
-$memcache = new Cache(new Adapter\Memcache(300));
-
-// Using the redis adapter object, with a 5 minute lifetime
-$redis = new Cache(new Adapter\Redis(300));
-
-// Using the session adapter object, with a 5 minute lifetime
-$session = new Cache(new Adapter\Session(300));
-
-// Using the file adapter object, with a 5 minute lifetime
-$sqlite = new Cache(new Adapter\Sqlite('/path/to/my/.htcachedb.sqlite', 300));
+// Then inject one of the adapters into the main cache object
+$cache = new Cache($apc);
 
 ```
 
