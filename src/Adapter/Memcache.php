@@ -14,7 +14,7 @@
 namespace Pop\Cache\Adapter;
 
 /**
- * Memcached cache adapter class
+ * Memcache cache adapter class
  *
  * @category   Pop
  * @package    Pop_Cache
@@ -23,17 +23,17 @@ namespace Pop\Cache\Adapter;
  * @license    http://www.popphp.org/license     New BSD License
  * @version    3.0.0
  */
-class Memcached extends AbstractAdapter
+class Memcache extends AbstractAdapter
 {
 
     /**
-     * Memcached object
-     * @var \Memcached
+     * Memcache object
+     * @var \Memcache
      */
-    protected $memcached = null;
+    protected $memcache = null;
 
     /**
-     * Memcached version
+     * Memcache version
      * @var string
      */
     protected $version = null;
@@ -41,69 +41,41 @@ class Memcached extends AbstractAdapter
     /**
      * Constructor
      *
-     * Instantiate the memcached cache object
+     * Instantiate the memcache cache object
      *
      * @param  int    $lifetime
      * @param  string $host
      * @param  int    $port
-     * @param  int    $weight
      * @throws Exception
-     * @return Memcached
+     * @return Memcache
      */
-    public function __construct($lifetime = 0, $host = 'localhost', $port = 11211, $weight = 1)
+    public function __construct($lifetime = 0, $host = 'localhost', $port = 11211)
     {
         parent::__construct($lifetime);
-        if (!class_exists('Memcached', false)) {
-            throw new Exception('Error: Memcached is not available.');
+        if (!class_exists('Memcache', false)) {
+            throw new Exception('Error: Memcache is not available.');
         }
 
-        $this->memcached = new \Memcached();
-        $this->addServer($host, $port, $weight);
-
-        $version = $this->memcached->getVersion();
-        if (isset($version[$host . ':' . $port])) {
-            $this->version = $version[$host . ':' . $port];
+        $this->memcache = new \Memcache();
+        if (!$this->memcache->connect($host, (int)$port)) {
+            throw new Exception('Error: Unable to connect to the memcache server.');
         }
+
+        $this->version = $this->memcache->getVersion();
     }
 
     /**
-     * Get the memcached object.
+     * Get the memcache object.
      *
-     * @return \Memcached
+     * @return \Memcache
      */
-    public function memcached()
+    public function memcache()
     {
-        return $this->memcached;
+        return $this->memcache;
     }
 
     /**
-     * Get the current version of memcached.
-     *
-     * @param  string $host
-     * @param  int    $port
-     * @param  int    $weight
-     * @return Memcached
-     */
-    public function addServer($host, $port = 11211, $weight = 1)
-    {
-        $this->memcached->addServer($host, $port, $weight);
-        return $this;
-    }
-
-    /**
-     * Get the current version of memcached.
-     *
-     * @param  array $servers
-     * @return Memcached
-     */
-    public function addServers(array $servers)
-    {
-        $this->memcached->addServers($servers);
-        return $this;
-    }
-
-    /**
-     * Get the current version of memcached.
+     * Get the current version of memcache.
      *
      * @return string
      */
@@ -117,7 +89,7 @@ class Memcached extends AbstractAdapter
      *
      * @param  string $id
      * @param  mixed  $value
-     * @return Memcached
+     * @return Memcache
      */
     public function save($id, $value)
     {
@@ -128,7 +100,7 @@ class Memcached extends AbstractAdapter
             'value'    => $value
         ];
 
-        $this->memcached->add($id, $cacheValue, $this->lifetime);
+        $this->memcache->set($id, $cacheValue, false, $this->lifetime);
         return $this;
     }
 
@@ -140,7 +112,7 @@ class Memcached extends AbstractAdapter
      */
     public function load($id)
     {
-        $cacheValue = $this->memcached->get($id);
+        $cacheValue = $this->memcache->get($id);
         $value      = false;
 
         if ($cacheValue !== false) {
@@ -154,22 +126,22 @@ class Memcached extends AbstractAdapter
      * Remove a value in cache.
      *
      * @param  string $id
-     * @return Memcached
+     * @return Memcache
      */
     public function remove($id)
     {
-        $this->memcached->delete($id);
+        $this->memcache->delete($id);
         return $this;
     }
 
     /**
      * Clear all stored values from cache.
      *
-     * @return Memcached
+     * @return Memcache
      */
     public function clear()
     {
-        $this->memcached->flush();
+        $this->memcache->flush();
         return $this;
     }
 
@@ -192,7 +164,7 @@ class Memcached extends AbstractAdapter
      */
     public function getStart($id)
     {
-        $cacheValue = $this->memcached->get($id);
+        $cacheValue = $this->memcache->get($id);
         $value      = 0;
 
         if ($cacheValue !== false) {
@@ -210,7 +182,7 @@ class Memcached extends AbstractAdapter
      */
     public function getExpiration($id)
     {
-        $cacheValue = $this->memcached->get($id);
+        $cacheValue = $this->memcache->get($id);
         $value      = 0;
 
         if ($cacheValue !== false) {
@@ -228,7 +200,7 @@ class Memcached extends AbstractAdapter
      */
     public function getLifetime($id)
     {
-        $cacheValue = $this->memcached->get($id);
+        $cacheValue = $this->memcache->get($id);
         $value      = 0;
 
         if ($cacheValue !== false) {

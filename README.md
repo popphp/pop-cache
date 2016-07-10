@@ -10,10 +10,13 @@ OVERVIEW
 Depending on the server environment and what's available, an application can use one of the following
 cache adapters:
 
+* Apc (cache service)
 * File (directory on disk)
+* Memcache (cache service)
+* Memcached (cache service)
+* Redis (cache service)
+* Session (short-term caching in session)
 * Sqlite (database file on disk)
-* Apc (cache service in memory)
-* Memcached (cache service in memory)
 
 `pop-cache` is a component of the [Pop PHP Framework](http://www.popphp.org/).
 
@@ -23,7 +26,7 @@ PHP 7
 While this component has been updated and tested to work with PHP 7, please note:
 
 - Due to the unavailability or instability of the **apc/apcu/apc_bc** extensions, the APC class adapter may not function properly in PHP 7.
-- Due to the unavailability or instability of the **memcache** extension, the Memcached class adapter will not function properly in PHP 7.
+- Due to the unavailability or instability of the **memcache/memcached** extensions, the Memcache & Memcached class adapter may not function properly in PHP 7.
 
 INSTALL
 -------
@@ -41,17 +44,24 @@ BASIC USAGE
 use Pop\Cache\Cache;
 use Pop\Cache\Adapter;
 
-// Using the file adapter object, with a 5 minute lifetime
-$fileCache = new Cache(new Adapter\File('/path/to/my/cache/dir', 300));
-
-// Using the file adapter object, with a 5 minute lifetime
-$dbCache = new Cache(new Adapter\Sqlite('/path/to/my/.htcachedb.sqlite', 300));
-
 // Using the apc adapter object, with a 5 minute lifetime
-$apcCache = new Cache(new Adapter\Apc(300));
+$apc = new Cache(new Adapter\Apc(300));
+
+// Using the file adapter object, with a 5 minute lifetime
+$file = new Cache(new Adapter\File('/path/to/my/cache/dir', 300));
 
 // Using the memcached adapter object, with a 5 minute lifetime
-$memCache = new Cache(new Adapter\Memcached(300));
+$memcache = new Cache(new Adapter\Memcache(300));
+
+// Using the redis adapter object, with a 5 minute lifetime
+$redis = new Cache(new Adapter\Redis(300));
+
+// Using the session adapter object, with a 5 minute lifetime
+$session = new Cache(new Adapter\Session(300));
+
+// Using the file adapter object, with a 5 minute lifetime
+$sqlite = new Cache(new Adapter\Sqlite('/path/to/my/.htcachedb.sqlite', 300));
+
 ```
 
 ### Saving and recalling data from cache

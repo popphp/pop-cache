@@ -21,7 +21,7 @@ namespace Pop\Cache\Adapter;
  * @author     Nick Sagona, III <dev@nolainteractive.com>
  * @copyright  Copyright (c) 2009-2016 NOLA Interactive, LLC. (http://www.nolainteractive.com)
  * @license    http://www.popphp.org/license     New BSD License
- * @version    2.2.0
+ * @version    3.0.0
  */
 class Sqlite extends AbstractAdapter
 {
@@ -39,8 +39,8 @@ class Sqlite extends AbstractAdapter
     protected $table = 'pop_cache';
 
     /**
-     * Sqlite DB object (either a PDO or Sqlite3 object)
-     * @var mixed
+     * Sqlite DB object
+     * @var \PDO|\SQLite3
      */
     protected $sqlite = null;
 
