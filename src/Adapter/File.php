@@ -17,11 +17,11 @@ namespace Pop\Cache\Adapter;
  * File adapter cache class
  *
  * @category   Pop
- * @package    Pop_Cache
+ * @package    Pop\Cache
  * @author     Nick Sagona, III <dev@nolainteractive.com>
  * @copyright  Copyright (c) 2009-2016 NOLA Interactive, LLC. (http://www.nolainteractive.com)
  * @license    http://www.popphp.org/license     New BSD License
- * @version    3.0.0
+ * @version    3.1.0
  */
 class File extends AbstractAdapter
 {
@@ -38,17 +38,16 @@ class File extends AbstractAdapter
      * Instantiate the cache file object
      *
      * @param  string $dir
-     * @param  int    $lifetime
-     * @return File
+     * @param  int    $ttl
      */
-    public function __construct($dir, $lifetime = 0)
+    public function __construct($dir, $ttl = 0)
     {
-        parent::__construct($lifetime);
+        parent::__construct($ttl);
         $this->setDir($dir);
     }
 
     /**
-     * Set the current cache dir.
+     * Set the current cache dir
      *
      * @param  string $dir
      * @throws Exception
@@ -68,7 +67,7 @@ class File extends AbstractAdapter
     }
 
     /**
-     * Get the current cache dir.
+     * Get the current cache dir
      *
      * @return string
      */
@@ -78,44 +77,60 @@ class File extends AbstractAdapter
     }
 
     /**
-     * Save a value to cache.
+     * Get the time-to-live for an item in cache
+     *
+     * @param  string $id
+     * @return int
+     */
+    public function getItemTtl($id)
+    {
+        $fileId = $this->dir . DIRECTORY_SEPARATOR . sha1($id);
+        $ttl    = 0;
+
+        if (file_exists($fileId)) {
+            $cacheValue = unserialize(file_get_contents($fileId));
+            $ttl        = $cacheValue['ttl'];
+        }
+
+        return $ttl;
+    }
+
+    /**
+     * Save an item to cache
      *
      * @param  string $id
      * @param  mixed  $value
+     * @param  int    $ttl
      * @return File
      */
-    public function save($id, $value)
+    public function saveItem($id, $value, $ttl = null)
     {
-        $file = $this->dir . DIRECTORY_SEPARATOR . sha1($id);
-
-        $cacheValue = [
-            'start'    => time(),
-            'expire'   => ($this->lifetime != 0) ? time() + $this->lifetime : 0,
-            'lifetime' => $this->lifetime,
-            'value'    => $value
-        ];
-        file_put_contents($file, serialize($cacheValue));
+        file_put_contents($this->dir . DIRECTORY_SEPARATOR . sha1($id), serialize([
+            'start' => time(),
+            'ttl'   => (null !== $ttl) ? (int)$ttl : $this->ttl,
+            'value' => $value
+        ]));
 
         return $this;
     }
 
     /**
-     * Load a value from cache.
+     * Get an item from cache
      *
      * @param  string $id
      * @return mixed
      */
-    public function load($id)
+    public function getItem($id)
     {
         $fileId = $this->dir . DIRECTORY_SEPARATOR . sha1($id);
         $value  = false;
 
         if (file_exists($fileId)) {
             $cacheValue = unserialize(file_get_contents($fileId));
-            if (($cacheValue['expire'] == 0) || ((time() - $cacheValue['start']) <= $cacheValue['lifetime'])) {
+            if (($cacheValue['ttl'] == 0) || ((time() - $cacheValue['start']) <= $cacheValue['ttl'])) {
                 $value = $cacheValue['value'];
             } else {
-                $this->remove($id);
+                $this->deleteItem($id);
             }
         }
 
@@ -123,12 +138,31 @@ class File extends AbstractAdapter
     }
 
     /**
-     * Remove a value in cache.
+     * Determine if the item exist in cache
+     *
+     * @param  string $id
+     * @return boolean
+     */
+    public function hasItem($id)
+    {
+        $fileId = $this->dir . DIRECTORY_SEPARATOR . sha1($id);
+        $result = false;
+
+        if (file_exists($fileId)) {
+            $cacheValue = unserialize(file_get_contents($fileId));
+            $result     = (($cacheValue['ttl'] == 0) || ((time() - $cacheValue['start']) <= $cacheValue['ttl']));
+        }
+
+        return $result;
+    }
+
+    /**
+     * Delete a value in cache
      *
      * @param  string $id
      * @return File
      */
-    public function remove($id)
+    public function deleteItem($id)
     {
         $fileId = $this->dir . DIRECTORY_SEPARATOR . sha1($id);
         if (file_exists($fileId)) {
@@ -139,126 +173,38 @@ class File extends AbstractAdapter
     }
 
     /**
-     * Clear all stored values from cache.
+     * Clear all stored values from cache
      *
-     * @param  boolean $del
-     * @param  string  $path
      * @return File
      */
-    public function clear($del = false, $path = null)
+    public function clear()
     {
-        if (null === $path) {
-            $path = $this->dir;
-        }
-
-        // Get a directory handle.
-        if (!$dh = @opendir($path)) {
+        if (!$dh = @opendir($this->dir)) {
             return;
         }
 
-        // Recursively dig through the directory, deleting files where applicable.
         while (false !== ($obj = readdir($dh))) {
-            if ($obj == '.' || $obj == '..') {
-                continue;
-            }
-            if (!@unlink($path . DIRECTORY_SEPARATOR . $obj)) {
-                $this->clear(true, $path . DIRECTORY_SEPARATOR . $obj);
+            if (($obj != '.') && ($obj != '..') &&
+                !is_dir($this->dir . DIRECTORY_SEPARATOR . $obj) && is_file($this->dir . DIRECTORY_SEPARATOR . $obj)) {
+                unlink($this->dir . DIRECTORY_SEPARATOR . $obj);
             }
         }
 
-        // Close the directory handle.
         closedir($dh);
 
-        // If the delete flag was passed, remove the top level directory.
-        if ($del) {
-            $this->delete($path);
-        }
-
         return $this;
     }
 
     /**
-     * Method to delete the top level directory
+     * Destroy cache resource
      *
-     * @param  string  $path
      * @return File
      */
-    public function delete($path = null)
+    public function destroy()
     {
-        if (null === $path) {
-            $path = $this->dir;
-        }
-        @rmdir($path);
-
+        $this->clear();
+        @rmdir($this->dir);
         return $this;
-    }
-
-    /**
-     * Tell is a value is expired.
-     *
-     * @param  string $id
-     * @return boolean
-     */
-    public function isExpired($id)
-    {
-        return ($this->load($id) === false);
-    }
-
-    /**
-     * Get original start timestamp of the value.
-     *
-     * @param  string $id
-     * @return int
-     */
-    public function getStart($id)
-    {
-        $fileId = $this->dir . DIRECTORY_SEPARATOR . sha1($id);
-        $value  = 0;
-
-        if (file_exists($fileId)) {
-            $cacheValue = unserialize(file_get_contents($fileId));
-            $value      = $cacheValue['start'];
-        }
-
-        return $value;
-    }
-
-    /**
-     * Get expiration timestamp of the value.
-     *
-     * @param  string $id
-     * @return int
-     */
-    public function getExpiration($id)
-    {
-        $fileId = $this->dir . DIRECTORY_SEPARATOR . sha1($id);
-        $value  = 0;
-
-        if (file_exists($fileId)) {
-            $cacheValue = unserialize(file_get_contents($fileId));
-            $value      = $cacheValue['expire'];
-        }
-
-        return $value;
-    }
-
-    /**
-     * Get the lifetime of the value.
-     *
-     * @param  string $id
-     * @return int
-     */
-    public function getLifetime($id)
-    {
-        $fileId = $this->dir . DIRECTORY_SEPARATOR . sha1($id);
-        $value  = 0;
-
-        if (file_exists($fileId)) {
-            $cacheValue = unserialize(file_get_contents($fileId));
-            $value      = $cacheValue['lifetime'];
-        }
-
-        return $value;
     }
 
 }

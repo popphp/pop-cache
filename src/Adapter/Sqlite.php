@@ -17,11 +17,11 @@ namespace Pop\Cache\Adapter;
  * SQLite cache adapter class
  *
  * @category   Pop
- * @package    Pop_Cache
+ * @package    Pop\Cache
  * @author     Nick Sagona, III <dev@nolainteractive.com>
  * @copyright  Copyright (c) 2009-2016 NOLA Interactive, LLC. (http://www.nolainteractive.com)
  * @license    http://www.popphp.org/license     New BSD License
- * @version    3.0.0
+ * @version    3.1.0
  */
 class Sqlite extends AbstractAdapter
 {
@@ -68,15 +68,14 @@ class Sqlite extends AbstractAdapter
      * Instantiate the cache db object
      *
      * @param  string  $db
-     * @param  int     $lifetime
+     * @param  int     $ttl
      * @param  string  $table
      * @param  boolean $pdo
      * @throws Exception
-     * @return Sqlite
      */
-    public function __construct($db, $lifetime = 0, $table = 'pop_cache', $pdo = false)
+    public function __construct($db, $ttl = 0, $table = 'pop_cache', $pdo = false)
     {
-        parent::__construct($lifetime);
+        parent::__construct($ttl);
 
         $this->setDb($db);
 
@@ -158,26 +157,50 @@ class Sqlite extends AbstractAdapter
     }
 
     /**
-     * Set the cache db table.
+     * Get the time-to-live for an item in cache
      *
-     * @param  string $table
-     * @return Sqlite
+     * @param  string $id
+     * @return int
      */
-    public function setTable($table)
+    public function getItemTtl($id)
     {
-        $this->table = addslashes($table);
-        $this->checkTable();
-        return $this;
+        $ttl = 0;
+
+        // Determine if the value already exists.
+        $rows = [];
+
+        $this->prepare('SELECT * FROM "' . $this->table . '" WHERE "id" = :id')
+             ->bindParams(['id' => sha1($id)])
+             ->execute();
+
+        if ($this->isPdo) {
+            while (($row = $this->result->fetchAll(\PDO::FETCH_ASSOC)) != false) {
+                $rows[] = $row;
+            }
+        } else {
+            while (($row = $this->result->fetchArray(SQLITE3_ASSOC)) != false) {
+                $rows[] = $row;
+            }
+        }
+
+        // If the value is found, check expiration and return.
+        if (count($rows) > 0) {
+            $cacheValue = $rows[0];
+            $ttl        = $cacheValue['ttl'];
+        }
+
+        return $ttl;
     }
 
     /**
-     * Save a value to cache.
+     * Save an item to cache
      *
      * @param  string $id
      * @param  mixed  $value
+     * @param  int    $ttl
      * @return Sqlite
      */
-    public function save($id, $value)
+    public function saveItem($id, $value, $ttl = null)
     {
         // Determine if the value already exists.
         $rows = [];
@@ -199,24 +222,22 @@ class Sqlite extends AbstractAdapter
         // If the value doesn't exist, save the new value.
         if (count($rows) == 0) {
             $sql = 'INSERT INTO "' . $this->table .
-                '" ("id", "start", "expire", "lifetime", "value") VALUES (:id, :start, :expire, :lifetime, :value)';
+                '" ("id", "start", "ttl", "value") VALUES (:id, :ttl, :lifetime, :value)';
             $params = [
-                'id'       => sha1($id),
-                'start'    => time(),
-                'expire'   => ($this->lifetime != 0) ? time() + $this->lifetime : 0,
-                'lifetime' => $this->lifetime,
-                'value'    => serialize($value)
+                'id'    => sha1($id),
+                'start' => time(),
+                'ttl'   => (null !== $ttl) ? (int)$ttl : $this->ttl,
+                'value' => serialize($value)
             ];
-        // Else, update it.
+            // Else, update it.
         } else {
             $sql = 'UPDATE "' . $this->table .
-                '" SET "start" = :start, "expire" = :expire, "lifetime" = :lifetime, "value" = :value WHERE "id" = :id';
+                '" SET "start" = :start, "ttl" = :ttl, "value" = :value WHERE "id" = :id';
             $params = [
-                'start'    => time(),
-                'expire'   => ($this->lifetime != 0) ? time() + $this->lifetime : 0,
-                'lifetime' => $this->lifetime,
-                'value'    => serialize($value),
-                'id'       => sha1($id)
+                'start' => time(),
+                'ttl'   => (null !== $ttl) ? (int)$ttl : $this->ttl,
+                'value' => serialize($value),
+                'id'    => sha1($id)
             ];
         }
 
@@ -229,12 +250,12 @@ class Sqlite extends AbstractAdapter
     }
 
     /**
-     * Load a value from cache.
+     * Get an item from cache
      *
      * @param  string $id
      * @return mixed
      */
-    public function load($id)
+    public function getItem($id)
     {
         $value = false;
 
@@ -258,10 +279,10 @@ class Sqlite extends AbstractAdapter
         // If the value is found, check expiration and return.
         if (count($rows) > 0) {
             $cacheValue = $rows[0];
-            if (($cacheValue['expire'] == 0) || ((time() - $cacheValue['start']) <= $cacheValue['lifetime'])) {
+            if (($cacheValue['ttl'] == 0) || ((time() - $cacheValue['start']) <= $cacheValue['ttl'])) {
                 $value = unserialize($cacheValue['value']);
             } else {
-                $this->remove($id);
+                $this->deleteItem($id);
             }
         }
 
@@ -269,12 +290,48 @@ class Sqlite extends AbstractAdapter
     }
 
     /**
-     * Remove a value in cache.
+     * Determine if the item exist in cache
+     *
+     * @param  string $id
+     * @return boolean
+     */
+    public function hasItem($id)
+    {
+        $result = false;
+
+        // Determine if the value already exists.
+        $rows = [];
+
+        $this->prepare('SELECT * FROM "' . $this->table . '" WHERE "id" = :id')
+             ->bindParams(['id' => sha1($id)])
+             ->execute();
+
+        if ($this->isPdo) {
+            while (($row = $this->result->fetchAll(\PDO::FETCH_ASSOC)) != false) {
+                $rows[] = $row;
+            }
+        } else {
+            while (($row = $this->result->fetchArray(SQLITE3_ASSOC)) != false) {
+                $rows[] = $row;
+            }
+        }
+
+        // If the value is found, check expiration and return.
+        if (count($rows) > 0) {
+            $cacheValue = $rows[0];
+            $result = (($cacheValue['ttl'] == 0) || ((time() - $cacheValue['start']) <= $cacheValue['ttl']));
+        }
+
+        return $result;
+    }
+
+    /**
+     * Delete a value in cache
      *
      * @param  string $id
      * @return Sqlite
      */
-    public function remove($id)
+    public function deleteItem($id)
     {
         $this->prepare('DELETE FROM "' . $this->table . '" WHERE "id" = :id')
              ->bindParams(['id' => sha1($id)])
@@ -284,30 +341,24 @@ class Sqlite extends AbstractAdapter
     }
 
     /**
-     * Clear all stored values from cache.
+     * Clear all stored values from cache
      *
-     * @param  boolean $del
      * @return Sqlite
      */
-    public function clear($del = false)
+    public function clear()
     {
         $this->query('DELETE FROM "' . $this->table . '"');
-
-        // If the delete flag was passed, remove the entire database
-        if ($del) {
-            $this->delete();
-        }
-
         return $this;
     }
 
     /**
-     * Method to delete the entire database file
+     * Destroy cache resource
      *
      * @return Sqlite
      */
-    public function delete()
+    public function destroy()
     {
+        $this->query('DELETE FROM "' . $this->table . '"');
         if (file_exists($this->db)) {
             unlink($this->db);
         }
@@ -316,124 +367,20 @@ class Sqlite extends AbstractAdapter
     }
 
     /**
-     * Tell is a value is expired.
+     * Set the cache db table
      *
-     * @param  string $id
-     * @return boolean
+     * @param  string $table
+     * @return Sqlite
      */
-    public function isExpired($id)
+    public function setTable($table)
     {
-        return ($this->load($id) === false);
+        $this->table = addslashes($table);
+        $this->checkTable();
+        return $this;
     }
 
     /**
-     * Get original start timestamp of the value.
-     *
-     * @param  string $id
-     * @return int
-     */
-    public function getStart($id)
-    {
-        // Determine if the value already exists.
-        $rows  = [];
-        $value = 0;
-
-        $this->prepare('SELECT * FROM "' . $this->table . '" WHERE "id" = :id')
-             ->bindParams(['id' => sha1($id)])
-             ->execute();
-
-        if ($this->isPdo) {
-            while (($row = $this->result->fetchAll(\PDO::FETCH_ASSOC)) != false) {
-                $rows[] = $row;
-            }
-        } else {
-            while (($row = $this->result->fetchArray(SQLITE3_ASSOC)) != false) {
-                $rows[] = $row;
-            }
-        }
-
-        // If the value is found, check expiration and return.
-        if (count($rows) > 0) {
-            $cacheValue = $rows[0];
-            $value      = $cacheValue['start'];
-
-        }
-
-        return $value;
-    }
-
-    /**
-     * Get expiration timestamp of the value.
-     *
-     * @param  string $id
-     * @return int
-     */
-    public function getExpiration($id)
-    {
-        // Determine if the value already exists.
-        $rows  = [];
-        $value = 0;
-
-        $this->prepare('SELECT * FROM "' . $this->table . '" WHERE "id" = :id')
-             ->bindParams(['id' => sha1($id)])
-             ->execute();
-
-        if ($this->isPdo) {
-            while (($row = $this->result->fetchAll(\PDO::FETCH_ASSOC)) != false) {
-                $rows[] = $row;
-            }
-        } else {
-            while (($row = $this->result->fetchArray(SQLITE3_ASSOC)) != false) {
-                $rows[] = $row;
-            }
-        }
-
-        // If the value is found, check expiration and return.
-        if (count($rows) > 0) {
-            $cacheValue = $rows[0];
-            $value      = $cacheValue['expire'];
-        }
-
-        return $value;
-    }
-
-    /**
-     * Get the lifetime of the value.
-     *
-     * @param  string $id
-     * @return int
-     */
-    public function getLifetime($id)
-    {
-        // Determine if the value already exists.
-        $rows  = [];
-        $value = 0;
-
-        $this->prepare('SELECT * FROM "' . $this->table . '" WHERE "id" = :id')
-             ->bindParams(['id' => sha1($id)])
-             ->execute();
-
-        if ($this->isPdo) {
-            while (($row = $this->result->fetchAll(\PDO::FETCH_ASSOC)) != false) {
-                $rows[] = $row;
-            }
-        } else {
-            while (($row = $this->result->fetchArray(SQLITE3_ASSOC)) != false) {
-                $rows[] = $row;
-            }
-        }
-
-        // If the value is found, check expiration and return.
-        if (count($rows) > 0) {
-            $cacheValue = $rows[0];
-            $value      = $cacheValue['lifetime'];
-        }
-
-        return $value;
-    }
-
-    /**
-     * Prepare a SQL query.
+     * Prepare a SQL query
      *
      * @param  string $sql
      * @return Sqlite
@@ -445,7 +392,7 @@ class Sqlite extends AbstractAdapter
     }
 
     /**
-     * Bind parameters to for a prepared SQL query.
+     * Bind parameters to for a prepared SQL query
      *
      * @param  array  $params
      * @return Sqlite
@@ -461,7 +408,7 @@ class Sqlite extends AbstractAdapter
     }
 
     /**
-     * Execute the prepared SQL query.
+     * Execute the prepared SQL query
      *
      * @throws Exception
      * @return void
@@ -476,7 +423,7 @@ class Sqlite extends AbstractAdapter
     }
 
     /**
-     * Execute the SQL query.
+     * Execute the SQL query
      *
      * @param  string $sql
      * @throws Exception
@@ -527,7 +474,7 @@ class Sqlite extends AbstractAdapter
         // If the cache table doesn't exist, create it.
         if (!in_array($this->table, $tables)) {
             $sql = 'CREATE TABLE IF NOT EXISTS "' . $this->table .
-                '" ("id" VARCHAR PRIMARY KEY NOT NULL UNIQUE, "start" INTEGER, "expire" INTEGER, "lifetime" INTEGER, "value" BLOB, "time" INTEGER)';
+                '" ("id" VARCHAR PRIMARY KEY NOT NULL UNIQUE, "start" INTEGER, "ttl" INTEGER, "value" BLOB, "time" INTEGER)';
 
             if ($this->isPdo) {
                 $sth = $this->sqlite->prepare($sql);

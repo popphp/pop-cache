@@ -17,76 +17,86 @@ namespace Pop\Cache\Adapter;
  * APC cache adapter class
  *
  * @category   Pop
- * @package    Pop_Cache
+ * @package    Pop\Cache
  * @author     Nick Sagona, III <dev@nolainteractive.com>
  * @copyright  Copyright (c) 2009-2016 NOLA Interactive, LLC. (http://www.nolainteractive.com)
  * @license    http://www.popphp.org/license     New BSD License
- * @version    3.0.0
+ * @version    3.1.0
  */
 class Apc extends AbstractAdapter
 {
-
-    /**
-     * APC info
-     * @var array
-     */
-    protected $info = null;
 
     /**
      * Constructor
      *
      * Instantiate the APC cache object
      *
-     * @param  int $lifetime
+     * @param  int $ttl
      * @throws Exception
-     * @return Apc
      */
-    public function __construct($lifetime = 0)
+    public function __construct($ttl = 0)
     {
-        parent::__construct($lifetime);
+        parent::__construct($ttl);
         if (!function_exists('apc_cache_info')) {
             throw new Exception('Error: APC is not available.');
         }
-        $this->info = apc_cache_info();
     }
 
     /**
      * Method to get the current APC info.
      *
-     * @return string
+     * @return array
      */
     public function getInfo()
     {
-        return $this->info;
+        return apc_cache_info();
     }
 
     /**
-     * Method to save a value to cache.
+     * Get the time-to-live for an item in cache
+     *
+     * @param  string $id
+     * @return int
+     */
+    public function getItemTtl($id)
+    {
+        $cacheValue = apc_fetch($id);
+        $ttl        = 0;
+
+        if ($cacheValue !== false) {
+            $ttl = $cacheValue['ttl'];
+        }
+
+        return $ttl;
+    }
+
+    /**
+     * Save an item to cache
      *
      * @param  string $id
      * @param  mixed  $value
+     * @param  int    $ttl
      * @return Apc
      */
-    public function save($id, $value)
+    public function saveItem($id, $value, $ttl = null)
     {
         $cacheValue = [
-            'start'    => time(),
-            'expire'   => ($this->lifetime != 0) ? time() + $this->lifetime : 0,
-            'lifetime' => $this->lifetime,
-            'value'    => $value
+            'start' => time(),
+            'ttl'   => (null !== $ttl) ? (int)$ttl : $this->ttl,
+            'value' => $value
         ];
 
-        apc_store($id, $cacheValue, $this->lifetime);
+        apc_store($id, $cacheValue, $cacheValue['ttl']);
         return $this;
     }
 
     /**
-     * Method to load a value from cache.
+     * Get an item from cache
      *
      * @param  string $id
      * @return mixed
      */
-    public function load($id)
+    public function getItem($id)
     {
         $cacheValue = apc_fetch($id);
         $value      = false;
@@ -99,19 +109,31 @@ class Apc extends AbstractAdapter
     }
 
     /**
-     * Method to delete a value in cache.
+     * Determine if the item exist in cache
+     *
+     * @param  string $id
+     * @return boolean
+     */
+    public function hasItem($id)
+    {
+        $cacheValue = apc_fetch($id);
+        return ($cacheValue !== false);
+    }
+
+    /**
+     * Delete a value in cache
      *
      * @param  string $id
      * @return Apc
      */
-    public function remove($id)
+    public function deleteItem($id)
     {
         apc_delete($id);
         return $this;
     }
 
     /**
-     * Method to clear all stored values from cache.
+     * Clear all stored values from cache
      *
      * @return Apc
      */
@@ -123,68 +145,14 @@ class Apc extends AbstractAdapter
     }
 
     /**
-     * Tell is a value is expired.
+     * Destroy cache resource
      *
-     * @param  string $id
-     * @return boolean
+     * @return Apc
      */
-    public function isExpired($id)
+    public function destroy()
     {
-        return ($this->load($id) === false);
-    }
-
-    /**
-     * Get original start timestamp of the value.
-     *
-     * @param  string $id
-     * @return int
-     */
-    public function getStart($id)
-    {
-        $cacheValue = apc_fetch($id);
-        $value      = 0;
-
-        if ($cacheValue !== false) {
-            $value = $cacheValue['start'];
-        }
-
-        return $value;
-    }
-
-    /**
-     * Get expiration timestamp of the value.
-     *
-     * @param  string $id
-     * @return int
-     */
-    public function getExpiration($id)
-    {
-        $cacheValue = apc_fetch($id);
-        $value      = 0;
-
-        if ($cacheValue !== false) {
-            $value = $cacheValue['expire'];
-        }
-
-        return $value;
-    }
-
-    /**
-     * Get the lifetime of the value.
-     *
-     * @param  string $id
-     * @return int
-     */
-    public function getLifetime($id)
-    {
-        $cacheValue = apc_fetch($id);
-        $value      = 0;
-
-        if ($cacheValue !== false) {
-            $value = $cacheValue['lifetime'];
-        }
-
-        return $value;
+        $this->clear();
+        return $this;
     }
 
 }

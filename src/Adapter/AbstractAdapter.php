@@ -17,108 +17,109 @@ namespace Pop\Cache\Adapter;
  * Cache adapter abstract class
  *
  * @category   Pop
- * @package    Pop_Cache
+ * @package    Pop\Cache
  * @author     Nick Sagona, III <dev@nolainteractive.com>
  * @copyright  Copyright (c) 2009-2016 NOLA Interactive, LLC. (http://www.nolainteractive.com)
  * @license    http://www.popphp.org/license     New BSD License
- * @version    3.0.0
+ * @version    3.1.0
  */
 abstract class AbstractAdapter implements AdapterInterface
 {
 
     /**
-     * Cache lifetime
+     * Global time-to-live
      * @var int
      */
-    protected $lifetime = 0;
+    protected $ttl = 0;
 
     /**
      * Constructor
      *
-     * Instantiate the cache object
+     * Instantiate the cache adapter object
      *
-     * @param  int $lifetime
-     * @return AbstractAdapter
+     * @param  int $ttl
      */
-    public function __construct($lifetime = 0)
+    public function __construct($ttl = 0)
     {
-        $this->setLifetime($lifetime);
+        $this->setTtl($ttl);
     }
 
     /**
-     * Set the lifetime.
+     * Set the global time-to-live for the cache adapter
      *
-     * @param  int $lifetime
+     * @param  int $ttl
      * @return AbstractAdapter
      */
-    public function setLifetime($lifetime)
+    public function setTtl($ttl)
     {
-        $this->lifetime = (int)$lifetime;
+        $this->ttl = (int)$ttl;
         return $this;
     }
 
     /**
-     * Save a value to cache.
+     * Get the global time-to-live for the cache object
+     *
+     * @return int
+     */
+    public function getTtl()
+    {
+        return $this->ttl;
+    }
+
+    /**
+     * Get the time-to-live for an item in cache
+     *
+     * @param  string $id
+     * @return int
+     */
+    abstract public function getItemTtl($id);
+
+    /**
+     * Save an item to cache
      *
      * @param  string $id
      * @param  mixed  $value
+     * @param  int    $ttl
      * @return void
      */
-    abstract public function save($id, $value);
+    abstract public function saveItem($id, $value, $ttl = null);
 
     /**
-     * Load a value from cache.
+     * Get an item from cache
      *
      * @param  string $id
      * @return mixed
      */
-    abstract public function load($id);
+    abstract public function getItem($id);
 
     /**
-     * Remove a value in cache.
+     * Determine if the item exist in cache
+     *
+     * @param  string $id
+     * @return boolean
+     */
+    abstract public function hasItem($id);
+
+    /**
+     * Delete a value in cache
      *
      * @param  string $id
      * @return void
      */
-    abstract public function remove($id);
+    abstract public function deleteItem($id);
 
     /**
-     * Clear all stored values from cache.
+     * Clear all stored values from cache
      *
      * @return void
      */
     abstract public function clear();
 
     /**
-     * Tell is a value is expired.
+     * Destroy cache resource
      *
-     * @param  string $id
-     * @return boolean
+     * @return void
      */
-    abstract public function isExpired($id);
-
-    /**
-     * Get original start timestamp of the value.
-     *
-     * @param  string $id
-     * @return int
-     */
-    abstract public function getStart($id);
-
-    /**
-     * Get expiration timestamp of the value.
-     *
-     * @param  string $id
-     * @return int
-     */
-    abstract public function getExpiration($id);
-
-    /**
-     * Get the lifetime of the value.
-     *
-     * @param  string $id
-     * @return int
-     */
-    abstract public function getLifetime($id);
+    abstract public function destroy();
 
 }

@@ -17,11 +17,11 @@ namespace Pop\Cache\Adapter;
  * Memcache cache adapter class
  *
  * @category   Pop
- * @package    Pop_Cache
+ * @package    Pop\Cache
  * @author     Nick Sagona, III <dev@nolainteractive.com>
  * @copyright  Copyright (c) 2009-2016 NOLA Interactive, LLC. (http://www.nolainteractive.com)
  * @license    http://www.popphp.org/license     New BSD License
- * @version    3.0.0
+ * @version    3.1.0
  */
 class Memcache extends AbstractAdapter
 {
@@ -33,25 +33,18 @@ class Memcache extends AbstractAdapter
     protected $memcache = null;
 
     /**
-     * Memcache version
-     * @var string
-     */
-    protected $version = null;
-
-    /**
      * Constructor
      *
      * Instantiate the memcache cache object
      *
-     * @param  int    $lifetime
+     * @param  int    $ttl
      * @param  string $host
      * @param  int    $port
      * @throws Exception
-     * @return Memcache
      */
-    public function __construct($lifetime = 0, $host = 'localhost', $port = 11211)
+    public function __construct($ttl = 0, $host = 'localhost', $port = 11211)
     {
-        parent::__construct($lifetime);
+        parent::__construct($ttl);
         if (!class_exists('Memcache', false)) {
             throw new Exception('Error: Memcache is not available.');
         }
@@ -60,8 +53,6 @@ class Memcache extends AbstractAdapter
         if (!$this->memcache->connect($host, (int)$port)) {
             throw new Exception('Error: Unable to connect to the memcache server.');
         }
-
-        $this->version = $this->memcache->getVersion();
     }
 
     /**
@@ -81,36 +72,54 @@ class Memcache extends AbstractAdapter
      */
     public function getVersion()
     {
-        return $this->version;
+        return $this->memcache->getVersion();
     }
 
     /**
-     * Save a value to cache.
+     * Get the time-to-live for an item in cache
+     *
+     * @param  string $id
+     * @return int
+     */
+    public function getItemTtl($id)
+    {
+        $cacheValue = $this->memcache->get($id);
+        $ttl        = 0;
+
+        if ($cacheValue !== false) {
+            $ttl = $cacheValue['ttl'];
+        }
+
+        return $ttl;
+    }
+
+    /**
+     * Save an item to cache
      *
      * @param  string $id
      * @param  mixed  $value
+     * @param  int    $ttl
      * @return Memcache
      */
-    public function save($id, $value)
+    public function saveItem($id, $value, $ttl = null)
     {
         $cacheValue = [
-            'start'    => time(),
-            'expire'   => ($this->lifetime != 0) ? time() + $this->lifetime : 0,
-            'lifetime' => $this->lifetime,
-            'value'    => $value
+            'start' => time(),
+            'ttl'   => (null !== $ttl) ? (int)$ttl : $this->ttl,
+            'value' => $value
         ];
 
-        $this->memcache->set($id, $cacheValue, false, $this->lifetime);
+        $this->memcache->set($id, $cacheValue, false, $cacheValue['ttl']);
         return $this;
     }
 
     /**
-     * Load a value from cache.
+     * Get an item from cache
      *
      * @param  string $id
      * @return mixed
      */
-    public function load($id)
+    public function getItem($id)
     {
         $cacheValue = $this->memcache->get($id);
         $value      = false;
@@ -123,19 +132,31 @@ class Memcache extends AbstractAdapter
     }
 
     /**
-     * Remove a value in cache.
+     * Determine if the item exist in cache
+     *
+     * @param  string $id
+     * @return boolean
+     */
+    public function hasItem($id)
+    {
+        $cacheValue = $this->memcache->get($id);
+        return ($cacheValue !== false);
+    }
+
+    /**
+     * Delete a value in cache
      *
      * @param  string $id
      * @return Memcache
      */
-    public function remove($id)
+    public function deleteItem($id)
     {
         $this->memcache->delete($id);
         return $this;
     }
 
     /**
-     * Clear all stored values from cache.
+     * Clear all stored values from cache
      *
      * @return Memcache
      */
@@ -146,68 +167,15 @@ class Memcache extends AbstractAdapter
     }
 
     /**
-     * Tell is a value is expired.
+     * Destroy cache resource
      *
-     * @param  string $id
-     * @return boolean
+     * @return Memcache
      */
-    public function isExpired($id)
+    public function destroy()
     {
-        return ($this->load($id) === false);
-    }
-
-    /**
-     * Get original start timestamp of the value.
-     *
-     * @param  string $id
-     * @return int
-     */
-    public function getStart($id)
-    {
-        $cacheValue = $this->memcache->get($id);
-        $value      = 0;
-
-        if ($cacheValue !== false) {
-            $value = $cacheValue['start'];
-        }
-
-        return $value;
-    }
-
-    /**
-     * Get expiration timestamp of the value.
-     *
-     * @param  string $id
-     * @return int
-     */
-    public function getExpiration($id)
-    {
-        $cacheValue = $this->memcache->get($id);
-        $value      = 0;
-
-        if ($cacheValue !== false) {
-            $value = $cacheValue['expire'];
-        }
-
-        return $value;
-    }
-
-    /**
-     * Get the lifetime of the value.
-     *
-     * @param  string $id
-     * @return int
-     */
-    public function getLifetime($id)
-    {
-        $cacheValue = $this->memcache->get($id);
-        $value      = 0;
-
-        if ($cacheValue !== false) {
-            $value = $cacheValue['lifetime'];
-        }
-
-        return $value;
+        $this->memcache->flush();
+        $this->memcache = null;
+        return $this;
     }
 
 }
