@@ -89,15 +89,37 @@ class Cache implements \ArrayAccess
     }
 
     /**
+     * Get global cache TTL
+     *
+     * @return int
+     */
+    public function getTtl()
+    {
+        return $this->adapter->getTtl();
+    }
+
+    /**
+     * Get item cache TTL
+     *
+     * @param  string $id
+     * @return int
+     */
+    public function getItemTtl($id)
+    {
+        return $this->adapter->getItemTtl($id);
+    }
+
+    /**
      * Save an item to cache
      *
      * @param  string $id
      * @param  mixed  $value
+     * @param  int    $ttl
      * @return Cache
      */
-    public function saveItem($id, $value)
+    public function saveItem($id, $value, $ttl = null)
     {
-        $this->adapter->saveItem($id, $value);
+        $this->adapter->saveItem($id, $value, $ttl);
         return $this;
     }
 

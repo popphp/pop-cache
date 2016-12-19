@@ -19,26 +19,43 @@ class CacheSqliteTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('pop_cache', $cache->getTable());
     }
 
+    public function testConstructorWithPdo()
+    {
+        $cache = new Sqlite(__DIR__ . '/cache/cache.sqlite', 0, 'pop_cache', true);
+        $this->assertInstanceOf('Pop\Cache\Adapter\Sqlite', $cache);
+        $cache->saveItem('baz', 'baz', 300);
+        $this->assertEquals('baz', $cache->getItem('baz'));
+        $this->assertEquals(300, $cache->getItemTtl('baz'));
+        $this->assertTrue($cache->hasItem('baz'));
+    }
+
     public function testSaveAndLoad()
     {
         $cache = new Sqlite(__DIR__ . '/cache/cache.sqlite');
-        $cache->save('foo', 'bar');
-        $this->assertEquals('bar', $cache->load('foo'));
-        $this->assertFalse($cache->isExpired('foo'));
-        $this->assertTrue(is_numeric($cache->getStart('foo')));
-        $this->assertTrue(is_numeric($cache->getExpiration('foo')));
-        $this->assertTrue(is_numeric($cache->getLifetime('foo')));
+        $cache->saveItem('foo', 'bar', 300);
+        $this->assertEquals('bar', $cache->getItem('foo'));
+        $this->assertEquals(300, $cache->getItemTtl('foo'));
+        $this->assertTrue($cache->hasItem('foo'));
+    }
+
+    public function testGetExpiredItem()
+    {
+        $cache = new Sqlite(__DIR__ . '/cache/cache.sqlite');
+        $cache->saveItem('foo', 'bar', -1);
+        $this->assertFalse($cache->getItem('foo'));
+        $cache->clear();
+        $cache->destroy();
     }
 
     public function testRemove()
     {
         $cache = new Sqlite(__DIR__ . '/cache/cache.sqlite');
-        $cache->save('foo', 'bar');
-        $this->assertEquals('bar', $cache->load('foo'));
-        $cache->remove('foo');
-        $this->assertFalse($cache->load('foo'));
+        $cache->saveItem('foo', 'bar');
+        $this->assertEquals('bar', $cache->getItem('foo'));
+        $cache->deleteItem('foo');
+        $this->assertFalse($cache->getItem('foo'));
         $cache->clear();
-        $cache->delete();
+        $cache->destroy();
         $this->assertFalse(file_exists(__DIR__ . '/cache/cache.sqlite'));
         rmdir(__DIR__ . '/cache');
     }

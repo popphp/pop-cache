@@ -174,9 +174,7 @@ class Sqlite extends AbstractAdapter
              ->execute();
 
         if ($this->isPdo) {
-            while (($row = $this->result->fetchAll(\PDO::FETCH_ASSOC)) != false) {
-                $rows[] = $row;
-            }
+            $rows = $this->statement->fetchAll(\PDO::FETCH_ASSOC);
         } else {
             while (($row = $this->result->fetchArray(SQLITE3_ASSOC)) != false) {
                 $rows[] = $row;
@@ -210,9 +208,7 @@ class Sqlite extends AbstractAdapter
              ->execute();
 
         if ($this->isPdo) {
-            while (($row = $this->result->fetchAll(\PDO::FETCH_ASSOC)) != false) {
-                $rows[] = $row;
-            }
+            $rows = $this->statement->fetchAll(\PDO::FETCH_ASSOC);
         } else {
             while (($row = $this->result->fetchArray(SQLITE3_ASSOC)) != false) {
                 $rows[] = $row;
@@ -222,14 +218,14 @@ class Sqlite extends AbstractAdapter
         // If the value doesn't exist, save the new value.
         if (count($rows) == 0) {
             $sql = 'INSERT INTO "' . $this->table .
-                '" ("id", "start", "ttl", "value") VALUES (:id, :ttl, :lifetime, :value)';
+                '" ("id", "start", "ttl", "value") VALUES (:id, :start, :ttl, :value)';
             $params = [
                 'id'    => sha1($id),
                 'start' => time(),
                 'ttl'   => (null !== $ttl) ? (int)$ttl : $this->ttl,
                 'value' => serialize($value)
             ];
-            // Else, update it.
+        // Else, update it.
         } else {
             $sql = 'UPDATE "' . $this->table .
                 '" SET "start" = :start, "ttl" = :ttl, "value" = :value WHERE "id" = :id';
@@ -267,9 +263,7 @@ class Sqlite extends AbstractAdapter
              ->execute();
 
         if ($this->isPdo) {
-            while (($row = $this->result->fetchAll(\PDO::FETCH_ASSOC)) != false) {
-                $rows[] = $row;
-            }
+            $rows = $this->statement->fetchAll(\PDO::FETCH_ASSOC);
         } else {
             while (($row = $this->result->fetchArray(SQLITE3_ASSOC)) != false) {
                 $rows[] = $row;
@@ -307,9 +301,7 @@ class Sqlite extends AbstractAdapter
              ->execute();
 
         if ($this->isPdo) {
-            while (($row = $this->result->fetchAll(\PDO::FETCH_ASSOC)) != false) {
-                $rows[] = $row;
-            }
+            $rows = $this->statement->fetchAll(\PDO::FETCH_ASSOC);
         } else {
             while (($row = $this->result->fetchArray(SQLITE3_ASSOC)) != false) {
                 $rows[] = $row;
