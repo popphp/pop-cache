@@ -50,7 +50,7 @@ $session   = new Adapter\Session(300);
 $sqlite    = new Adapter\Sqlite('/path/to/my/.htcachedb.sqlite', 300);
 
 // Then inject one of the adapters into the main cache object
-$cache = new Cache($apc);
+$cache = new Cache($file);
 
 ```
 
@@ -60,17 +60,17 @@ Once a cache object is created, you can simply save and load data from it like b
 
 ```php
 // Save some data to the cache
-$cache->save('foo', $myData);
+$cache->saveItem('foo', $myData);
 
 // Recall that data later in the app.
 // Returns false is the data does not exist or has expired.
-$foo = $cache->load('foo');
+$foo = $cache->getItem('foo');
 ```
 
 ### Deleting data from cache
 
 ```php
-$cache->remove('foo');
+$cache->deleteItem('foo');
 ```
 
 ### Clearing all data from cache
