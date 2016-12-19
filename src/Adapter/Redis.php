@@ -51,7 +51,7 @@ class Redis extends AbstractAdapter
 
         $this->redis = new \Redis();
         if (!$this->redis->connect($host, (int)$port)) {
-            throw new Exception('Error: Unable to connect to the memcached server.');
+            throw new Exception('Error: Unable to connect to the redis server.');
         }
     }
 
@@ -105,9 +105,9 @@ class Redis extends AbstractAdapter
     public function saveItem($id, $value, $ttl = null)
     {
         $cacheValue = [
-            'start'  => time(),
-            'expire' => (null !== $ttl) ? (int)$ttl : $this->ttl,
-            'value'  => $value
+            'start' => time(),
+            'ttl'   => (null !== $ttl) ? (int)$ttl : $this->ttl,
+            'value' => $value
         ];
 
         if ($cacheValue['ttl'] != 0) {
