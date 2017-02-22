@@ -1,6 +1,10 @@
 pop-cache
 =========
 
+
+[![Build Status](https://travis-ci.org/popphp/pop-cache.svg?branch=master)](https://travis-ci.org/popphp/pop-cache)
+[![Coverage Status](http://cc.popphp.org/coverage.php?comp=pop-cache)](http://cc.popphp.org/pop-cache/)
+
 OVERVIEW
 --------
 `pop-cache` provides the ability to cache frequently accessed content via several different adapters.
