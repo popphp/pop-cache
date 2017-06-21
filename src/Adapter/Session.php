@@ -21,7 +21,7 @@ namespace Pop\Cache\Adapter;
  * @author     Nick Sagona, III <dev@nolainteractive.com>
  * @copyright  Copyright (c) 2009-2017 NOLA Interactive, LLC. (http://www.nolainteractive.com)
  * @license    http://www.popphp.org/license     New BSD License
- * @version    3.1.0
+ * @version    3.1.1
  */
 class Session extends AbstractAdapter
 {
@@ -39,8 +39,8 @@ class Session extends AbstractAdapter
         if (session_id() == '') {
             session_start();
         }
-        if (!isset($_SESSION['_POP_CACHE'])) {
-            $_SESSION['_POP_CACHE'] = [];
+        if (!isset($_SESSION['_POP_CACHE_'])) {
+            $_SESSION['_POP_CACHE_'] = [];
         }
     }
 
@@ -54,8 +54,8 @@ class Session extends AbstractAdapter
     {
         $ttl = 0;
 
-        if (isset($_SESSION['_POP_CACHE'][$id])) {
-            $cacheValue = unserialize($_SESSION['_POP_CACHE'][$id]);
+        if (isset($_SESSION['_POP_CACHE_'][$id])) {
+            $cacheValue = unserialize($_SESSION['_POP_CACHE_'][$id]);
             $ttl        = $cacheValue['ttl'];
         }
 
@@ -72,7 +72,7 @@ class Session extends AbstractAdapter
      */
     public function saveItem($id, $value, $ttl = null)
     {
-        $_SESSION['_POP_CACHE'][$id] = serialize([
+        $_SESSION['_POP_CACHE_'][$id] = serialize([
             'start' => time(),
             'ttl'   => (null !== $ttl) ? (int)$ttl : $this->ttl,
             'value' => $value
@@ -91,8 +91,8 @@ class Session extends AbstractAdapter
     {
         $value  = false;
 
-        if (isset($_SESSION['_POP_CACHE'][$id])) {
-            $cacheValue = unserialize($_SESSION['_POP_CACHE'][$id]);
+        if (isset($_SESSION['_POP_CACHE_'][$id])) {
+            $cacheValue = unserialize($_SESSION['_POP_CACHE_'][$id]);
             if (($cacheValue['ttl'] == 0) || ((time() - $cacheValue['start']) <= $cacheValue['ttl'])) {
                 $value = $cacheValue['value'];
             } else {
@@ -113,8 +113,8 @@ class Session extends AbstractAdapter
     {
         $result = false;
 
-        if (isset($_SESSION['_POP_CACHE'][$id])) {
-            $cacheValue = unserialize($_SESSION['_POP_CACHE'][$id]);
+        if (isset($_SESSION['_POP_CACHE_'][$id])) {
+            $cacheValue = unserialize($_SESSION['_POP_CACHE_'][$id]);
             $result = (($cacheValue['ttl'] == 0) || ((time() - $cacheValue['start']) <= $cacheValue['ttl']));
         }
 
@@ -129,8 +129,8 @@ class Session extends AbstractAdapter
      */
     public function deleteItem($id)
     {
-        if (isset($_SESSION['_POP_CACHE'][$id])) {
-            unset($_SESSION['_POP_CACHE'][$id]);
+        if (isset($_SESSION['_POP_CACHE_'][$id])) {
+            unset($_SESSION['_POP_CACHE_'][$id]);
         }
 
         return $this;
@@ -143,7 +143,7 @@ class Session extends AbstractAdapter
      */
     public function clear()
     {
-        $_SESSION['_POP_CACHE'] = [];
+        $_SESSION['_POP_CACHE_'] = [];
         return $this;
     }
 
