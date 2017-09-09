@@ -145,7 +145,7 @@ class Memcached extends AbstractAdapter
             'value' => $value
         ];
 
-        $this->memcached->add($id, $cacheValue, $cacheValue['ttl']);
+        $this->memcached->set($id, $cacheValue, $cacheValue['ttl']);
         return $this;
     }
 
@@ -160,8 +160,10 @@ class Memcached extends AbstractAdapter
         $cacheValue = $this->memcached->get($id);
         $value      = false;
 
-        if ($cacheValue !== false) {
+        if (($cacheValue !== false) && (($cacheValue['ttl'] == 0) || ((time() - $cacheValue['start']) <= $cacheValue['ttl']))) {
             $value = $cacheValue['value'];
+        } else {
+            $this->deleteItem($id);
         }
 
         return $value;
@@ -175,8 +177,7 @@ class Memcached extends AbstractAdapter
      */
     public function hasItem($id)
     {
-        $cacheValue = $this->memcached->get($id);
-        return ($cacheValue !== false);
+        return ($this->getItem($id) !== false);
     }
 
     /**

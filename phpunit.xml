@@ -9,9 +9,7 @@
         <whitelist addUncoveredFilesFromWhitelist="true">
             <directory suffix=".php">src</directory>
             <exclude>
-                <file>src/Adapter/Apc.php</file>
                 <file>src/Adapter/Memcache.php</file>
-                <file>src/Adapter/Memcached.php</file>
                 <file>src/Adapter/Redis.php</file>
                 <file>src/Adapter/Session.php</file>
             </exclude>

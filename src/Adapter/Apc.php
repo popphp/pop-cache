@@ -27,6 +27,12 @@ class Apc extends AbstractAdapter
 {
 
     /**
+     * Flag for APCu
+     * @var boolean
+     */
+    protected $apcu = true;
+
+    /**
      * Constructor
      *
      * Instantiate the APC cache object
@@ -37,9 +43,11 @@ class Apc extends AbstractAdapter
     public function __construct($ttl = 0)
     {
         parent::__construct($ttl);
-        if (!function_exists('apc_cache_info')) {
+        if (!function_exists('apc_cache_info') && !function_exists('apcu_cache_info')) {
             throw new Exception('Error: APC is not available.');
         }
+
+        $this->apcu = function_exists('apcu_cache_info');
     }
 
     /**
@@ -49,7 +57,7 @@ class Apc extends AbstractAdapter
      */
     public function getInfo()
     {
-        return apc_cache_info();
+        return ($this->apcu) ? apcu_cache_info() : apc_cache_info();
     }
 
     /**
@@ -60,7 +68,7 @@ class Apc extends AbstractAdapter
      */
     public function getItemTtl($id)
     {
-        $cacheValue = apc_fetch($id);
+        $cacheValue = ($this->apcu) ? apcu_fetch($id) : apc_fetch($id);
         $ttl        = 0;
 
         if ($cacheValue !== false) {
@@ -86,7 +94,11 @@ class Apc extends AbstractAdapter
             'value' => $value
         ];
 
-        apc_store($id, $cacheValue, $cacheValue['ttl']);
+        if ($this->apcu) {
+            apcu_store($id, $cacheValue, $cacheValue['ttl']);
+        } else {
+            apc_store($id, $cacheValue, $cacheValue['ttl']);
+        }
         return $this;
     }
 
@@ -98,11 +110,13 @@ class Apc extends AbstractAdapter
      */
     public function getItem($id)
     {
-        $cacheValue = apc_fetch($id);
+        $cacheValue = ($this->apcu) ? apcu_fetch($id) : apc_fetch($id);
         $value      = false;
 
-        if ($cacheValue !== false) {
+        if (($cacheValue !== false) && (($cacheValue['ttl'] == 0) || ((time() - $cacheValue['start']) <= $cacheValue['ttl']))) {
             $value = $cacheValue['value'];
+        } else {
+            $this->deleteItem($id);
         }
 
         return $value;
@@ -116,8 +130,7 @@ class Apc extends AbstractAdapter
      */
     public function hasItem($id)
     {
-        $cacheValue = apc_fetch($id);
-        return ($cacheValue !== false);
+        return ($this->getItem($id) !== false);
     }
 
     /**
@@ -128,7 +141,11 @@ class Apc extends AbstractAdapter
      */
     public function deleteItem($id)
     {
-        apc_delete($id);
+        if ($this->apcu) {
+            apcu_delete($id);
+        } else {
+            apc_delete($id);
+        }
         return $this;
     }
 
@@ -139,8 +156,12 @@ class Apc extends AbstractAdapter
      */
     public function clear()
     {
-        apc_clear_cache();
-        apc_clear_cache('user');
+        if ($this->apcu) {
+            apcu_clear_cache();
+        } else {
+            apc_clear_cache();
+            apc_clear_cache('user');
+        }
         return $this;
     }
 
