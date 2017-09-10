@@ -129,9 +129,11 @@ class Redis extends AbstractAdapter
         $cacheValue = $this->redis->get($id);
         $value      = false;
 
-        if ($cacheValue !== false) {
+        if (($cacheValue !== false) && (($cacheValue['ttl'] == 0) || ((time() - $cacheValue['start']) <= $cacheValue['ttl']))) {
             $cacheValue = unserialize($cacheValue);
             $value      = $cacheValue['value'];
+        } else {
+            $this->deleteItem($id);
         }
 
         return $value;

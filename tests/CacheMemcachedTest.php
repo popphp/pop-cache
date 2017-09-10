@@ -12,7 +12,6 @@ class CacheMemcachedTest extends \PHPUnit_Framework_TestCase
     {
         $cache = new Memcached();
         $this->assertInstanceOf('Pop\Cache\Adapter\Memcached', $cache);
-        $this->assertNotNull($cache->getVersion());
     }
 
     public function testSaveAndLoad()
