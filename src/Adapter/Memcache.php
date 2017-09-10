@@ -124,8 +124,10 @@ class Memcache extends AbstractAdapter
         $cacheValue = $this->memcache->get($id);
         $value      = false;
 
-        if ($cacheValue !== false) {
+        if (($cacheValue !== false) && (($cacheValue['ttl'] == 0) || ((time() - $cacheValue['start']) <= $cacheValue['ttl']))) {
             $value = $cacheValue['value'];
+        } else {
+            $this->deleteItem($id);
         }
 
         return $value;
@@ -139,8 +141,7 @@ class Memcache extends AbstractAdapter
      */
     public function hasItem($id)
     {
-        $cacheValue = $this->memcache->get($id);
-        return ($cacheValue !== false);
+        return ($this->getItem($id) !== false);
     }
 
     /**

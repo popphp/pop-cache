@@ -30,6 +30,33 @@ class CacheTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('bar', $cache['foo']);
     }
 
+    public function testMagicMethods()
+    {
+        $cache = new Cache(new Adapter\File(__DIR__ . '/cache', 60));
+        $cache->baz     = 789;
+        $cache['test3'] = 999;
+        $this->assertTrue(isset($cache->baz));
+        $this->assertTrue(isset($cache['test3']));
+        unset($cache->baz);
+        unset($cache['test3']);
+        $this->assertFalse(isset($cache->baz));
+        $this->assertFalse(isset($cache['test3']));
+    }
+
+    public function testSaveAndDeleteItems()
+    {
+        $cache = new Cache(new Adapter\File(__DIR__ . '/cache', 60));
+        $cache->saveItems([
+            'test1' => 123,
+            'test2' => 456
+        ]);
+        $this->assertEquals(123, $cache->getItem('test1'));
+        $this->assertEquals(456, $cache->getItem('test2'));
+        $cache->deleteItems(['test1', 'test2']);
+        $this->assertFalse($cache->getItem('test1'));
+        $this->assertFalse($cache->getItem('test2'));
+    }
+
     public function testRemove()
     {
         $cache = new Cache(new Adapter\File(__DIR__ . '/cache', 60));
@@ -46,9 +73,12 @@ class CacheTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(123, $cache1->getItem('baz'));
         $this->assertTrue($cache1->hasItem('foo'));
         $cache1->clear();
+        $cache1->destroy();
         $this->assertFalse($cache1->getItem('foo'));
         $this->assertFalse($cache1->getItem('baz'));
-        rmdir(__DIR__ . '/cache');
+        if (file_exists(__DIR__ . '/cache')) {
+            rmdir(__DIR__ . '/cache');
+        }
     }
 
 }
