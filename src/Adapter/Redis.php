@@ -129,9 +129,13 @@ class Redis extends AbstractAdapter
         $cacheValue = $this->redis->get($id);
         $value      = false;
 
-        if (($cacheValue !== false) && (($cacheValue['ttl'] == 0) || ((time() - $cacheValue['start']) <= $cacheValue['ttl']))) {
+        if ($cacheValue !== false) {
             $cacheValue = unserialize($cacheValue);
-            $value      = $cacheValue['value'];
+            if ((($cacheValue['ttl'] == 0) || ((time() - $cacheValue['start']) <= $cacheValue['ttl']))) {
+                $value = $cacheValue['value'];
+            } else {
+                $this->deleteItem($id);
+            }
         } else {
             $this->deleteItem($id);
         }
@@ -147,7 +151,7 @@ class Redis extends AbstractAdapter
      */
     public function hasItem($id)
     {
-        $cacheValue = $this->redis->get($id);
+        $cacheValue = $this->getItem($id);
         return ($cacheValue !== false);
     }
 
