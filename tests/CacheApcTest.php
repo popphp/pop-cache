@@ -3,8 +3,9 @@
 namespace Pop\Cache\Test;
 
 use Pop\Cache\Adapter\Apc;
+use PHPUnit\Framework\TestCase;
 
-class CacheApcTest extends \PHPUnit_Framework_TestCase
+class CacheApcTest extends TestCase
 {
 
     public function testConstructor()

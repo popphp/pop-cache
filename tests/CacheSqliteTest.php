@@ -3,8 +3,9 @@
 namespace Pop\Cache\Test;
 
 use Pop\Cache\Adapter\Sqlite;
+use PHPUnit\Framework\TestCase;
 
-class CacheSqliteTest extends \PHPUnit_Framework_TestCase
+class CacheSqliteTest extends TestCase
 {
 
     public function testConstructor()
