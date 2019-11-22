@@ -2,22 +2,22 @@
 
 namespace Pop\Cache\Test;
 
-use Pop\Cache\Adapter\Memcached;
+use Pop\Cache\Adapter\Apc;
 use PHPUnit\Framework\TestCase;
 
-class CacheMemcachedTest extends TestCase
+class ApcTest extends TestCase
 {
-
 
     public function testConstructor()
     {
-        $cache = new Memcached();
-        $this->assertInstanceOf('Pop\Cache\Adapter\Memcached', $cache);
+        $cache = new Apc(60);
+        $this->assertInstanceOf('Pop\Cache\Adapter\Apc', $cache);
+        $this->assertTrue(isset($cache->getInfo()['ttl']));
     }
 
     public function testSaveAndLoad()
     {
-        $cache = new Memcached();
+        $cache = new Apc(60);
         $cache->saveItem('foo', 'bar', 300);
         $this->assertEquals('bar', $cache->getItem('foo'));
         $this->assertEquals(300, $cache->getItemTtl('foo'));
@@ -26,7 +26,7 @@ class CacheMemcachedTest extends TestCase
 
     public function testGetExpiredItem()
     {
-        $cache = new Memcached();
+        $cache = new Apc(60);
         $cache->saveItem('foo', 'bar', 1);
         sleep(2);
         $this->assertFalse($cache->getItem('foo'));
@@ -36,7 +36,7 @@ class CacheMemcachedTest extends TestCase
 
     public function testRemove()
     {
-        $cache = new Memcached();
+        $cache = new Apc(60);
         $cache->saveItem('foo', 'bar');
         $this->assertEquals('bar', $cache->getItem('foo'));
         $cache->deleteItem('foo');

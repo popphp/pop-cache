@@ -2,22 +2,23 @@
 
 namespace Pop\Cache\Test;
 
-use Pop\Cache\Adapter\Apc;
+use Pop\Cache\Adapter\Redis;
 use PHPUnit\Framework\TestCase;
 
-class CacheApcTest extends TestCase
+class RedisTest extends TestCase
 {
 
     public function testConstructor()
     {
-        $cache = new Apc(60);
-        $this->assertInstanceOf('Pop\Cache\Adapter\Apc', $cache);
-        $this->assertTrue(isset($cache->getInfo()['ttl']));
+        $cache = new Redis();
+        $this->assertInstanceOf('Pop\Cache\Adapter\Redis', $cache);
+        $this->assertInstanceOf('Redis', $cache->redis());
+        $this->assertNotEmpty($cache->getVersion());
     }
 
     public function testSaveAndLoad()
     {
-        $cache = new Apc(60);
+        $cache = new Redis();
         $cache->saveItem('foo', 'bar', 300);
         $this->assertEquals('bar', $cache->getItem('foo'));
         $this->assertEquals(300, $cache->getItemTtl('foo'));
@@ -26,7 +27,7 @@ class CacheApcTest extends TestCase
 
     public function testGetExpiredItem()
     {
-        $cache = new Apc(60);
+        $cache = new Redis();
         $cache->saveItem('foo', 'bar', 1);
         sleep(2);
         $this->assertFalse($cache->getItem('foo'));
@@ -36,7 +37,7 @@ class CacheApcTest extends TestCase
 
     public function testRemove()
     {
-        $cache = new Apc(60);
+        $cache = new Redis();
         $cache->saveItem('foo', 'bar');
         $this->assertEquals('bar', $cache->getItem('foo'));
         $cache->deleteItem('foo');

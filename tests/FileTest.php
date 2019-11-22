@@ -5,7 +5,7 @@ namespace Pop\Cache\Test;
 use Pop\Cache\Adapter\File;
 use PHPUnit\Framework\TestCase;
 
-class CacheFileTest extends TestCase
+class FileTest extends TestCase
 {
 
     public function testConstructor()

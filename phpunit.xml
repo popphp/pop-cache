@@ -8,11 +8,6 @@
     <filter>
         <whitelist processUncoveredFilesFromWhitelist="true">
             <directory suffix=".php">src</directory>
-            <exclude>
-                <file>src/Adapter/Memcache.php</file>
-                <file>src/Adapter/Redis.php</file>
-                <file>src/Adapter/Session.php</file>
-            </exclude>
         </whitelist>
     </filter>
     <logging>

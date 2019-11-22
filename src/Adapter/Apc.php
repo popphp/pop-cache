@@ -4,7 +4,7 @@
  *
  * @link       https://github.com/popphp/popphp-framework
  * @author     Nick Sagona, III <dev@nolainteractive.com>
- * @copyright  Copyright (c) 2009-2019 NOLA Interactive, LLC. (http://www.nolainteractive.com)
+ * @copyright  Copyright (c) 2009-2020 NOLA Interactive, LLC. (http://www.nolainteractive.com)
  * @license    http://www.popphp.org/license     New BSD License
  */
 
@@ -19,18 +19,12 @@ namespace Pop\Cache\Adapter;
  * @category   Pop
  * @package    Pop\Cache
  * @author     Nick Sagona, III <dev@nolainteractive.com>
- * @copyright  Copyright (c) 2009-2019 NOLA Interactive, LLC. (http://www.nolainteractive.com)
+ * @copyright  Copyright (c) 2009-2020 NOLA Interactive, LLC. (http://www.nolainteractive.com)
  * @license    http://www.popphp.org/license     New BSD License
- * @version    3.2.3
+ * @version    3.3.0
  */
 class Apc extends AbstractAdapter
 {
-
-    /**
-     * Flag for APCu
-     * @var boolean
-     */
-    protected $apcu = true;
 
     /**
      * Constructor
@@ -43,11 +37,9 @@ class Apc extends AbstractAdapter
     public function __construct($ttl = 0)
     {
         parent::__construct($ttl);
-        if (!function_exists('apc_cache_info') && !function_exists('apcu_cache_info')) {
-            throw new Exception('Error: APC is not available.');
+        if (!function_exists('apcu_cache_info')) {
+            throw new Exception('Error: APCu is not available.');
         }
-
-        $this->apcu = function_exists('apcu_cache_info');
     }
 
     /**
@@ -57,7 +49,7 @@ class Apc extends AbstractAdapter
      */
     public function getInfo()
     {
-        return ($this->apcu) ? apcu_cache_info() : apc_cache_info();
+        return apcu_cache_info();
     }
 
     /**
@@ -68,7 +60,7 @@ class Apc extends AbstractAdapter
      */
     public function getItemTtl($id)
     {
-        $cacheValue = ($this->apcu) ? apcu_fetch($id) : apc_fetch($id);
+        $cacheValue = apcu_fetch($id);
         $ttl        = 0;
 
         if ($cacheValue !== false) {
@@ -94,11 +86,8 @@ class Apc extends AbstractAdapter
             'value' => $value
         ];
 
-        if ($this->apcu) {
-            apcu_store($id, $cacheValue, $cacheValue['ttl']);
-        } else {
-            apc_store($id, $cacheValue, $cacheValue['ttl']);
-        }
+        apcu_store($id, $cacheValue, $cacheValue['ttl']);
+
         return $this;
     }
 
@@ -110,10 +99,11 @@ class Apc extends AbstractAdapter
      */
     public function getItem($id)
     {
-        $cacheValue = ($this->apcu) ? apcu_fetch($id) : apc_fetch($id);
+        $cacheValue = apcu_fetch($id);
         $value      = false;
 
-        if (($cacheValue !== false) && (($cacheValue['ttl'] == 0) || ((time() - $cacheValue['start']) <= $cacheValue['ttl']))) {
+        if (($cacheValue !== false) &&
+            (($cacheValue['ttl'] == 0) || ((time() - $cacheValue['start']) <= $cacheValue['ttl']))) {
             $value = $cacheValue['value'];
         } else {
             $this->deleteItem($id);
@@ -141,11 +131,7 @@ class Apc extends AbstractAdapter
      */
     public function deleteItem($id)
     {
-        if ($this->apcu) {
-            apcu_delete($id);
-        } else {
-            apc_delete($id);
-        }
+        apcu_delete($id);
         return $this;
     }
 
@@ -156,12 +142,7 @@ class Apc extends AbstractAdapter
      */
     public function clear()
     {
-        if ($this->apcu) {
-            apcu_clear_cache();
-        } else {
-            apc_clear_cache();
-            apc_clear_cache('user');
-        }
+        apcu_clear_cache();
         return $this;
     }
 
