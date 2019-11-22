@@ -14,10 +14,9 @@ cache adapters:
 * Apc (cache service)
 * File (directory on disk)
 * Memcache (cache service)
-* Memcached (cache service)
 * Redis (cache service)
 * Session (short-term caching in session)
-* Sqlite (database file on disk)
+* Db (database caching)
 
 `pop-cache` is a component of the [Pop PHP Framework](http://www.popphp.org/).
 
@@ -36,18 +35,17 @@ BASIC USAGE
 ```php
 use Pop\Cache\Cache;
 use Pop\Cache\Adapter;
+use Pop\Db\Db;
 
 $apc       = new Adapter\Apc(300);
 $file      = new Adapter\File('/path/to/my/cache/dir', 300);
-$memcache  = new Adapter\Memcache(300);
 $memcached = new Adapter\Memcached(300);
 $redis     = new Adapter\Redis(300);
 $session   = new Adapter\Session(300);
-$sqlite    = new Adapter\Sqlite('/path/to/my/.htcachedb.sqlite', 300);
+$db        = new Adapter\Db(Db::sqliteConnect(['database' => __DIR__ . '/tmp/cache.sqlite']), 300)
 
 // Then inject one of the adapters into the main cache object
 $cache = new Cache($file);
-
 ```
 
 ### Saving and recalling data from cache
