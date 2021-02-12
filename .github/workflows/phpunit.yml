@@ -14,11 +14,11 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Start Memcached
-      - uses: niden/actions-memcached@v7
-
     #- name: Validate composer.json and composer.lock
     #  run: composer validate
+
+    - name: Start Memcached
+      uses: niden/actions-memcached@v7
 
     - name: Start Redis
       uses: supercharge/redis-github-action@1.2.0
