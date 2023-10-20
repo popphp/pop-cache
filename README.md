@@ -27,6 +27,12 @@ Install `pop-cache` using Composer.
 
     composer require popphp/pop-cache
 
+Or, require it in your composer.json file
+
+    "require": {
+        "popphp/pop-cache" : "^4.0.0"
+    }
+
 BASIC USAGE
 -----------
 

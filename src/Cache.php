@@ -4,7 +4,7 @@
  *
  * @link       https://github.com/popphp/popphp-framework
  * @author     Nick Sagona, III <dev@nolainteractive.com>
- * @copyright  Copyright (c) 2009-2023 NOLA Interactive, LLC. (http://www.nolainteractive.com)
+ * @copyright  Copyright (c) 2009-2024 NOLA Interactive, LLC. (http://www.nolainteractive.com)
  * @license    http://www.popphp.org/license     New BSD License
  */
 
@@ -14,7 +14,6 @@
 namespace Pop\Cache;
 
 use Pop\Cache\Adapter\AdapterInterface;
-use ReturnTypeWillChange;
 
 /**
  * Cache class
@@ -22,18 +21,18 @@ use ReturnTypeWillChange;
  * @category   Pop
  * @package    Pop\Cache
  * @author     Nick Sagona, III <dev@nolainteractive.com>
- * @copyright  Copyright (c) 2009-2023 NOLA Interactive, LLC. (http://www.nolainteractive.com)
+ * @copyright  Copyright (c) 2009-2024 NOLA Interactive, LLC. (http://www.nolainteractive.com)
  * @license    http://www.popphp.org/license     New BSD License
- * @version    3.4.0
+ * @version    4.0.0
  */
 class Cache implements \ArrayAccess
 {
 
     /**
      * Cache adapter
-     * @var AdapterInterface
+     * @var ?Adapter\AdapterInterface
      */
-    protected $adapter = null;
+    protected ?Adapter\AdapterInterface $adapter = null;
 
     /**
      * Constructor
@@ -52,7 +51,7 @@ class Cache implements \ArrayAccess
      *
      * @return array
      */
-    public static function getAvailableAdapters()
+    public static function getAvailableAdapters(): array
     {
         $pdoDrivers = (class_exists('Pdo', false)) ? \PDO::getAvailableDrivers() : [];
 
@@ -70,9 +69,9 @@ class Cache implements \ArrayAccess
      * Determine if an adapter is available
      *
      * @param  string $adapter
-     * @return boolean
+     * @return bool
      */
-    public static function isAvailable($adapter)
+    public static function isAvailable(string $adapter): bool
     {
         $adapter  = strtolower($adapter);
         $adapters = self::getAvailableAdapters();
@@ -82,9 +81,9 @@ class Cache implements \ArrayAccess
     /**
      * Get the adapter
      *
-     * @return mixed
+     * @return ?Adapter\AdapterInterface
      */
-    public function adapter()
+    public function adapter(): ?Adapter\AdapterInterface
     {
         return $this->adapter;
     }
@@ -94,7 +93,7 @@ class Cache implements \ArrayAccess
      *
      * @return int
      */
-    public function getTtl()
+    public function getTtl(): int
     {
         return $this->adapter->getTtl();
     }
@@ -105,7 +104,7 @@ class Cache implements \ArrayAccess
      * @param  string $id
      * @return int
      */
-    public function getItemTtl($id)
+    public function getItemTtl(string $id): int
     {
         return $this->adapter->getItemTtl($id);
     }
@@ -115,27 +114,25 @@ class Cache implements \ArrayAccess
      *
      * @param  string $id
      * @param  mixed  $value
-     * @param  int    $ttl
-     * @return Cache
+     * @param  ?int   $ttl
+     * @return void
      */
-    public function saveItem($id, $value, $ttl = null)
+    public function saveItem(string $id, mixed $value, ?int $ttl = null): void
     {
         $this->adapter->saveItem($id, $value, $ttl);
-        return $this;
     }
 
     /**
      * Save items to cache
      *
      * @param  array $items
-     * @return Cache
+     * @return void
      */
-    public function saveItems(array $items)
+    public function saveItems(array $items): void
     {
         foreach ($items as $id => $value) {
             $this->adapter->saveItem($id, $value);
         }
-        return $this;
     }
 
     /**
@@ -144,7 +141,7 @@ class Cache implements \ArrayAccess
      * @param  string $id
      * @return mixed
      */
-    public function getItem($id)
+    public function getItem(string $id): mixed
     {
         return $this->adapter->getItem($id);
     }
@@ -153,9 +150,9 @@ class Cache implements \ArrayAccess
      * Determine if the item is in cache
      *
      * @param  string $id
-     * @return mixed
+     * @return bool
      */
-    public function hasItem($id)
+    public function hasItem(string $id): bool
     {
         return $this->adapter->hasItem($id);
     }
@@ -164,48 +161,44 @@ class Cache implements \ArrayAccess
      * Delete an item in cache
      *
      * @param  string $id
-     * @return Cache
+     * @return void
      */
-    public function deleteItem($id)
+    public function deleteItem(string $id): void
     {
         $this->adapter->deleteItem($id);
-        return $this;
     }
 
     /**
      * Delete items in cache
      *
      * @param  array $ids
-     * @return Cache
+     * @return void
      */
-    public function deleteItems(array $ids)
+    public function deleteItems(array $ids): void
     {
         foreach ($ids as $id) {
             $this->adapter->deleteItem($id);
         }
-        return $this;
     }
 
     /**
      * Clear all stored values from cache
      *
-     * @return Cache
+     * @return
      */
-    public function clear()
+    public function clear(): void
     {
         $this->adapter->clear();
-        return $this;
     }
 
     /**
      * Destroy cache resource
      *
-     * @return Cache
+     * @return void
      */
-    public function destroy()
+    public function destroy(): void
     {
         $this->adapter->destroy();
-        return $this;
     }
 
     /**
@@ -214,7 +207,7 @@ class Cache implements \ArrayAccess
      * @param  string $name
      * @return mixed
      */
-    public function __get($name)
+    public function __get(string $name): mixed
     {
         return $this->adapter->getItem($name);
     }
@@ -224,10 +217,9 @@ class Cache implements \ArrayAccess
      *
      * @param  string $name
      * @param  mixed $value
-     * @throws Exception
      * @return void
      */
-    public function __set($name, $value)
+    public function __set(string $name, mixed $value): void
     {
         $this->adapter->saveItem($name, $value);
     }
@@ -236,9 +228,9 @@ class Cache implements \ArrayAccess
      * Determine if the item is in cache
      *
      * @param  string $name
-     * @return boolean
+     * @return bool
      */
-    public function __isset($name)
+    public function __isset(string $name): bool
     {
         return $this->adapter->hasItem($name);
     }
@@ -247,10 +239,9 @@ class Cache implements \ArrayAccess
      * Delete value from cache
      *
      * @param  string $name
-     * @throws Exception
      * @return void
      */
-    public function __unset($name)
+    public function __unset(string $name): void
     {
         $this->adapter->deleteItem($name);
     }
@@ -259,9 +250,9 @@ class Cache implements \ArrayAccess
      * ArrayAccess offsetExists
      *
      * @param  mixed $offset
-     * @return boolean
+     * @return bool
      */
-    public function offsetExists($offset): bool
+    public function offsetExists(mixed $offset): bool
     {
         return $this->__isset($offset);
     }
@@ -272,8 +263,7 @@ class Cache implements \ArrayAccess
      * @param  mixed $offset
      * @return mixed
      */
-    #[ReturnTypeWillChange]
-    public function offsetGet($offset)
+    public function offsetGet(mixed $offset): mixed
     {
         return $this->__get($offset);
     }
@@ -285,8 +275,7 @@ class Cache implements \ArrayAccess
      * @param  mixed $value
      * @return void
      */
-    #[ReturnTypeWillChange]
-    public function offsetSet($offset, $value)
+    public function offsetSet(mixed $offset, mixed  $value): void
     {
         $this->__set($offset, $value);
     }
@@ -297,8 +286,7 @@ class Cache implements \ArrayAccess
      * @param  mixed $offset
      * @return void
      */
-    #[ReturnTypeWillChange]
-    public function offsetUnset($offset)
+    public function offsetUnset(mixed $offset): void
     {
         $this->__unset($offset);
     }

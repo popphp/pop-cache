@@ -4,7 +4,7 @@
  *
  * @link       https://github.com/popphp/popphp-framework
  * @author     Nick Sagona, III <dev@nolainteractive.com>
- * @copyright  Copyright (c) 2009-2023 NOLA Interactive, LLC. (http://www.nolainteractive.com)
+ * @copyright  Copyright (c) 2009-2024 NOLA Interactive, LLC. (http://www.nolainteractive.com)
  * @license    http://www.popphp.org/license     New BSD License
  */
 
@@ -19,9 +19,9 @@ namespace Pop\Cache\Adapter;
  * @category   Pop
  * @package    Pop\Cache
  * @author     Nick Sagona, III <dev@nolainteractive.com>
- * @copyright  Copyright (c) 2009-2023 NOLA Interactive, LLC. (http://www.nolainteractive.com)
+ * @copyright  Copyright (c) 2009-2024 NOLA Interactive, LLC. (http://www.nolainteractive.com)
  * @license    http://www.popphp.org/license     New BSD License
- * @version    3.4.0
+ * @version    4.0.0
  */
 abstract class AbstractAdapter implements AdapterInterface
 {
@@ -30,7 +30,7 @@ abstract class AbstractAdapter implements AdapterInterface
      * Global time-to-live
      * @var int
      */
-    protected $ttl = 0;
+    protected int $ttl = 0;
 
     /**
      * Constructor
@@ -39,7 +39,7 @@ abstract class AbstractAdapter implements AdapterInterface
      *
      * @param  int $ttl
      */
-    public function __construct($ttl = 0)
+    public function __construct(int $ttl = 0)
     {
         $this->setTtl($ttl);
     }
@@ -50,9 +50,9 @@ abstract class AbstractAdapter implements AdapterInterface
      * @param  int $ttl
      * @return AbstractAdapter
      */
-    public function setTtl($ttl)
+    public function setTtl(int $ttl): AbstractAdapter
     {
-        $this->ttl = (int)$ttl;
+        $this->ttl = $ttl;
         return $this;
     }
 
@@ -61,7 +61,7 @@ abstract class AbstractAdapter implements AdapterInterface
      *
      * @return int
      */
-    public function getTtl()
+    public function getTtl(): int
     {
         return $this->ttl;
     }
@@ -72,17 +72,17 @@ abstract class AbstractAdapter implements AdapterInterface
      * @param  string $id
      * @return int
      */
-    abstract public function getItemTtl($id);
+    abstract public function getItemTtl(string $id): int;
 
     /**
      * Save an item to cache
      *
      * @param  string $id
      * @param  mixed  $value
-     * @param  int    $ttl
-     * @return void
+     * @param  ?int   $ttl
+     * @return AbstractAdapter
      */
-    abstract public function saveItem($id, $value, $ttl = null);
+    abstract public function saveItem(string $id, mixed $value, ?int $ttl = null): AbstractAdapter;
 
     /**
      * Get an item from cache
@@ -90,36 +90,36 @@ abstract class AbstractAdapter implements AdapterInterface
      * @param  string $id
      * @return mixed
      */
-    abstract public function getItem($id);
+    abstract public function getItem(string $id): mixed;
 
     /**
      * Determine if the item exist in cache
      *
      * @param  string $id
-     * @return boolean
+     * @return bool
      */
-    abstract public function hasItem($id);
+    abstract public function hasItem(string $id): bool;
 
     /**
      * Delete a value in cache
      *
      * @param  string $id
-     * @return void
+     * @return AbstractAdapter
      */
-    abstract public function deleteItem($id);
+    abstract public function deleteItem(string $id): AbstractAdapter;
 
     /**
      * Clear all stored values from cache
      *
-     * @return void
+     * @return AbstractAdapter
      */
-    abstract public function clear();
+    abstract public function clear(): AbstractAdapter;
 
     /**
      * Destroy cache resource
      *
-     * @return void
+     * @return AbstractAdapter
      */
-    abstract public function destroy();
+    abstract public function destroy(): AbstractAdapter;
 
 }

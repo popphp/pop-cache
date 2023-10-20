@@ -4,7 +4,7 @@
  *
  * @link       https://github.com/popphp/popphp-framework
  * @author     Nick Sagona, III <dev@nolainteractive.com>
- * @copyright  Copyright (c) 2009-2023 NOLA Interactive, LLC. (http://www.nolainteractive.com)
+ * @copyright  Copyright (c) 2009-2024 NOLA Interactive, LLC. (http://www.nolainteractive.com)
  * @license    http://www.popphp.org/license     New BSD License
  */
 
@@ -19,9 +19,9 @@ namespace Pop\Cache\Adapter;
  * @category   Pop
  * @package    Pop\Cache
  * @author     Nick Sagona, III <dev@nolainteractive.com>
- * @copyright  Copyright (c) 2009-2023 NOLA Interactive, LLC. (http://www.nolainteractive.com)
+ * @copyright  Copyright (c) 2009-2024 NOLA Interactive, LLC. (http://www.nolainteractive.com)
  * @license    http://www.popphp.org/license     New BSD License
- * @version    3.4.0
+ * @version    4.0.0
  */
 class Session extends AbstractAdapter
 {
@@ -33,7 +33,7 @@ class Session extends AbstractAdapter
      *
      * @param  int $ttl
      */
-    public function __construct($ttl = 0)
+    public function __construct(int $ttl = 0)
     {
         parent::__construct($ttl);
         if (session_id() == '') {
@@ -50,7 +50,7 @@ class Session extends AbstractAdapter
      * @param  string $id
      * @return int
      */
-    public function getItemTtl($id)
+    public function getItemTtl(string $id): int
     {
         $ttl = 0;
 
@@ -67,17 +67,16 @@ class Session extends AbstractAdapter
      *
      * @param  string $id
      * @param  mixed  $value
-     * @param  int    $ttl
+     * @param  ?int   $ttl
      * @return Session
      */
-    public function saveItem($id, $value, $ttl = null)
+    public function saveItem(string $id, mixed $value, ?int $ttl = null): Session
     {
         $_SESSION['_POP_CACHE_'][$id] = serialize([
             'start' => time(),
-            'ttl'   => (null !== $ttl) ? (int)$ttl : $this->ttl,
+            'ttl'   => ($ttl !== null) ? $ttl : $this->ttl,
             'value' => $value
         ]);
-
         return $this;
     }
 
@@ -87,7 +86,7 @@ class Session extends AbstractAdapter
      * @param  string $id
      * @return mixed
      */
-    public function getItem($id)
+    public function getItem(string $id): mixed
     {
         $value  = false;
 
@@ -107,9 +106,9 @@ class Session extends AbstractAdapter
      * Determine if the item exist in cache
      *
      * @param  string $id
-     * @return boolean
+     * @return bool
      */
-    public function hasItem($id)
+    public function hasItem(string $id): bool
     {
         $result = false;
 
@@ -127,12 +126,11 @@ class Session extends AbstractAdapter
      * @param  string $id
      * @return Session
      */
-    public function deleteItem($id)
+    public function deleteItem(string $id): Session
     {
         if (isset($_SESSION['_POP_CACHE_'][$id])) {
             unset($_SESSION['_POP_CACHE_'][$id]);
         }
-
         return $this;
     }
 
@@ -141,7 +139,7 @@ class Session extends AbstractAdapter
      *
      * @return Session
      */
-    public function clear()
+    public function clear(): Session
     {
         $_SESSION['_POP_CACHE_'] = [];
         return $this;
@@ -150,12 +148,13 @@ class Session extends AbstractAdapter
     /**
      * Destroy cache resource
      *
-     * @return void
+     * @return Session
      */
-    public function destroy()
+    public function destroy(): Session
     {
         $_SESSION = null;
         session_unset();
         session_destroy();
+        return $this;
     }
 }

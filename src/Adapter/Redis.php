@@ -4,7 +4,7 @@
  *
  * @link       https://github.com/popphp/popphp-framework
  * @author     Nick Sagona, III <dev@nolainteractive.com>
- * @copyright  Copyright (c) 2009-2023 NOLA Interactive, LLC. (http://www.nolainteractive.com)
+ * @copyright  Copyright (c) 2009-2024 NOLA Interactive, LLC. (http://www.nolainteractive.com)
  * @license    http://www.popphp.org/license     New BSD License
  */
 
@@ -19,18 +19,18 @@ namespace Pop\Cache\Adapter;
  * @category   Pop
  * @package    Pop\Cache
  * @author     Nick Sagona, III <dev@nolainteractive.com>
- * @copyright  Copyright (c) 2009-2023 NOLA Interactive, LLC. (http://www.nolainteractive.com)
+ * @copyright  Copyright (c) 2009-2024 NOLA Interactive, LLC. (http://www.nolainteractive.com)
  * @license    http://www.popphp.org/license     New BSD License
- * @version    3.4.0
+ * @version    4.0.0
  */
 class Redis extends AbstractAdapter
 {
 
     /**
      * Redis object
-     * @var \Redis
+     * @var ?\Redis
      */
-    protected $redis = null;
+    protected ?\Redis $redis = null;
 
     /**
      * Constructor
@@ -42,7 +42,7 @@ class Redis extends AbstractAdapter
      * @param  int    $port
      * @throws Exception
      */
-    public function __construct($ttl = 0, $host = 'localhost', $port = 6379)
+    public function __construct(int $ttl = 0, string $host = 'localhost', int $port = 6379)
     {
         parent::__construct($ttl);
         if (!class_exists('Redis', false)) {
@@ -60,7 +60,7 @@ class Redis extends AbstractAdapter
      *
      * @return \Redis
      */
-    public function redis()
+    public function redis(): \Redis
     {
         return $this->redis;
     }
@@ -70,7 +70,7 @@ class Redis extends AbstractAdapter
      *
      * @return string
      */
-    public function getVersion()
+    public function getVersion(): string
     {
         return $this->redis->info()['redis_version'];
     }
@@ -81,7 +81,7 @@ class Redis extends AbstractAdapter
      * @param  string $id
      * @return int
      */
-    public function getItemTtl($id)
+    public function getItemTtl(string $id): int
     {
         $cacheValue = $this->redis->get($id);
         $ttl        = false;
@@ -99,14 +99,14 @@ class Redis extends AbstractAdapter
      *
      * @param  string $id
      * @param  mixed  $value
-     * @param  int    $ttl
+     * @param  ?int   $ttl
      * @return Redis
      */
-    public function saveItem($id, $value, $ttl = null)
+    public function saveItem(string $id, mixed $value, ?int $ttl = null): Redis
     {
         $cacheValue = [
             'start' => time(),
-            'ttl'   => (null !== $ttl) ? (int)$ttl : $this->ttl,
+            'ttl'   => ($ttl !== null) ? $ttl : $this->ttl,
             'value' => $value
         ];
 
@@ -124,7 +124,7 @@ class Redis extends AbstractAdapter
      * @param  string $id
      * @return mixed
      */
-    public function getItem($id)
+    public function getItem(string $id): mixed
     {
         $cacheValue = $this->redis->get($id);
         $value      = false;
@@ -147,9 +147,9 @@ class Redis extends AbstractAdapter
      * Determine if the item exist in cache
      *
      * @param  string $id
-     * @return boolean
+     * @return bool
      */
-    public function hasItem($id)
+    public function hasItem(string $id): bool
     {
         $cacheValue = $this->getItem($id);
         return ($cacheValue !== false);
@@ -161,7 +161,7 @@ class Redis extends AbstractAdapter
      * @param  string $id
      * @return Redis
      */
-    public function deleteItem($id)
+    public function deleteItem(string $id): Redis
     {
         $this->redis->del($id);
         return $this;
@@ -172,7 +172,7 @@ class Redis extends AbstractAdapter
      *
      * @return Redis
      */
-    public function clear()
+    public function clear(): Redis
     {
         $this->redis->flushDb();
         return $this;
@@ -183,7 +183,7 @@ class Redis extends AbstractAdapter
      *
      * @return Redis
      */
-    public function destroy()
+    public function destroy(): Redis
     {
         $this->redis->flushDb();
         $this->redis = null;

@@ -4,7 +4,7 @@
  *
  * @link       https://github.com/popphp/popphp-framework
  * @author     Nick Sagona, III <dev@nolainteractive.com>
- * @copyright  Copyright (c) 2009-2023 NOLA Interactive, LLC. (http://www.nolainteractive.com)
+ * @copyright  Copyright (c) 2009-2024 NOLA Interactive, LLC. (http://www.nolainteractive.com)
  * @license    http://www.popphp.org/license     New BSD License
  */
 
@@ -19,18 +19,18 @@ namespace Pop\Cache\Adapter;
  * @category   Pop
  * @package    Pop\Cache
  * @author     Nick Sagona, III <dev@nolainteractive.com>
- * @copyright  Copyright (c) 2009-2023 NOLA Interactive, LLC. (http://www.nolainteractive.com)
+ * @copyright  Copyright (c) 2009-2024 NOLA Interactive, LLC. (http://www.nolainteractive.com)
  * @license    http://www.popphp.org/license     New BSD License
- * @version    3.4.0
+ * @version    4.0.0
  */
 class File extends AbstractAdapter
 {
 
     /**
      * Cache dir
-     * @var string
+     * @var ?string
      */
-    protected $dir = null;
+    protected ?string $dir = null;
 
     /**
      * Constructor
@@ -40,7 +40,7 @@ class File extends AbstractAdapter
      * @param  string $dir
      * @param  int    $ttl
      */
-    public function __construct($dir, $ttl = 0)
+    public function __construct(string $dir, int $ttl = 0)
     {
         parent::__construct($ttl);
         $this->setDir($dir);
@@ -53,7 +53,7 @@ class File extends AbstractAdapter
      * @throws Exception
      * @return File
      */
-    public function setDir($dir)
+    public function setDir(string $dir): File
     {
         if (!file_exists($dir)) {
             throw new Exception('Error: That cache directory does not exist.');
@@ -69,9 +69,9 @@ class File extends AbstractAdapter
     /**
      * Get the current cache dir
      *
-     * @return string
+     * @return ?string
      */
-    public function getDir()
+    public function getDir(): ?string
     {
         return $this->dir;
     }
@@ -82,7 +82,7 @@ class File extends AbstractAdapter
      * @param  string $id
      * @return int
      */
-    public function getItemTtl($id)
+    public function getItemTtl(string $id): int
     {
         $fileId = $this->dir . DIRECTORY_SEPARATOR . sha1($id);
         $ttl    = 0;
@@ -100,14 +100,14 @@ class File extends AbstractAdapter
      *
      * @param  string $id
      * @param  mixed  $value
-     * @param  int    $ttl
+     * @param  ?int   $ttl
      * @return File
      */
-    public function saveItem($id, $value, $ttl = null)
+    public function saveItem(string $id, mixed $value, ?int $ttl = null): File
     {
         file_put_contents($this->dir . DIRECTORY_SEPARATOR . sha1($id), serialize([
             'start' => time(),
-            'ttl'   => (null !== $ttl) ? (int)$ttl : $this->ttl,
+            'ttl'   => ($ttl !== null) ? $ttl : $this->ttl,
             'value' => $value
         ]));
 
@@ -120,7 +120,7 @@ class File extends AbstractAdapter
      * @param  string $id
      * @return mixed
      */
-    public function getItem($id)
+    public function getItem(string $id): mixed
     {
         $fileId = $this->dir . DIRECTORY_SEPARATOR . sha1($id);
         $value  = false;
@@ -141,9 +141,9 @@ class File extends AbstractAdapter
      * Determine if the item exist in cache
      *
      * @param  string $id
-     * @return boolean
+     * @return bool
      */
-    public function hasItem($id)
+    public function hasItem(string $id): bool
     {
         $fileId = $this->dir . DIRECTORY_SEPARATOR . sha1($id);
         $result = false;
@@ -162,13 +162,12 @@ class File extends AbstractAdapter
      * @param  string $id
      * @return File
      */
-    public function deleteItem($id)
+    public function deleteItem(string $id): File
     {
         $fileId = $this->dir . DIRECTORY_SEPARATOR . sha1($id);
         if (file_exists($fileId)) {
             unlink($fileId);
         }
-
         return $this;
     }
 
@@ -177,10 +176,10 @@ class File extends AbstractAdapter
      *
      * @return File
      */
-    public function clear()
+    public function clear(): File
     {
         if (!$dh = @opendir($this->dir)) {
-            return;
+            return $this;
         }
 
         while (false !== ($obj = readdir($dh))) {
@@ -200,10 +199,11 @@ class File extends AbstractAdapter
      *
      * @return File
      */
-    public function destroy()
+    public function destroy(): File
     {
         $this->clear();
         @rmdir($this->dir);
+
         return $this;
     }
 

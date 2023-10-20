@@ -4,7 +4,7 @@
  *
  * @link       https://github.com/popphp/popphp-framework
  * @author     Nick Sagona, III <dev@nolainteractive.com>
- * @copyright  Copyright (c) 2009-2023 NOLA Interactive, LLC. (http://www.nolainteractive.com)
+ * @copyright  Copyright (c) 2009-2024 NOLA Interactive, LLC. (http://www.nolainteractive.com)
  * @license    http://www.popphp.org/license     New BSD License
  */
 
@@ -21,24 +21,24 @@ use Pop\Db\Adapter;
  * @category   Pop
  * @package    Pop\Cache
  * @author     Nick Sagona, III <dev@nolainteractive.com>
- * @copyright  Copyright (c) 2009-2023 NOLA Interactive, LLC. (http://www.nolainteractive.com)
+ * @copyright  Copyright (c) 2009-2024 NOLA Interactive, LLC. (http://www.nolainteractive.com)
  * @license    http://www.popphp.org/license     New BSD License
- * @version    3.4.0
+ * @version    4.0.0
  */
 class Db extends AbstractAdapter
 {
 
     /**
      * Database adapter
-     * @var Adapter\AbstractAdapter
+     * @var ?Adapter\AbstractAdapter
      */
-    protected $db = null;
+    protected ?Adapter\AbstractAdapter $db = null;
 
     /**
      * Cache db table
      * @var string
      */
-    protected $table = 'pop_cache';
+    protected string $table = 'pop_cache';
 
     /**
      * Constructor
@@ -57,7 +57,7 @@ class Db extends AbstractAdapter
      * @param  int                     $ttl
      * @param  string                  $table
      */
-    public function __construct(Adapter\AbstractAdapter $db, $ttl = 0, $table = 'pop_cache')
+    public function __construct(Adapter\AbstractAdapter $db, int $ttl = 0, string $table = 'pop_cache')
     {
         parent::__construct($ttl);
 
@@ -72,10 +72,10 @@ class Db extends AbstractAdapter
     /**
      * Set the current cache db adapter.
      *
-     * @param  string $db
+     * @param  Adapter\AbstractAdapter $db
      * @return Db
      */
-    public function setDb($db)
+    public function setDb(Adapter\AbstractAdapter $db): Db
     {
         $this->db = $db;
         return $this;
@@ -86,7 +86,7 @@ class Db extends AbstractAdapter
      *
      * @return Adapter\AbstractAdapter
      */
-    public function getDb()
+    public function getDb(): Adapter\AbstractAdapter
     {
         return $this->db;
     }
@@ -96,7 +96,7 @@ class Db extends AbstractAdapter
      *
      * @return string
      */
-    public function getTable()
+    public function getTable(): string
     {
         return $this->table;
     }
@@ -107,7 +107,7 @@ class Db extends AbstractAdapter
      * @param  string $id
      * @return int
      */
-    public function getItemTtl($id)
+    public function getItemTtl(string $id): int
     {
         $sql         = $this->db->createSql();
         $placeholder = $sql->getPlaceholder();
@@ -134,10 +134,10 @@ class Db extends AbstractAdapter
      *
      * @param  string $id
      * @param  mixed  $value
-     * @param  int    $ttl
+     * @param  ?int   $ttl
      * @return Db
      */
-    public function saveItem($id, $value, $ttl = null)
+    public function saveItem(string $id, mixed $value, ?int $ttl = null): Db
     {
         // Determine if the value already exists.
         $sql         = $this->db->createSql();
@@ -178,7 +178,7 @@ class Db extends AbstractAdapter
             $params = [
                 'key'   => sha1($id),
                 'start' => time(),
-                'ttl'   => (null !== $ttl) ? (int)$ttl : $this->ttl,
+                'ttl'   => ($ttl !== null) ? $ttl : $this->ttl,
                 'value' => serialize($value)
             ];
         // Else, update it.
@@ -197,7 +197,7 @@ class Db extends AbstractAdapter
             ])->where('key = ' . $placeholders[3]);
             $params = [
                 'start' => time(),
-                'ttl'   => (null !== $ttl) ? (int)$ttl : $this->ttl,
+                'ttl'   => ($ttl !== null) ? $ttl : $this->ttl,
                 'value' => serialize($value),
                 'key'   => sha1($id)
             ];
@@ -217,7 +217,7 @@ class Db extends AbstractAdapter
      * @param  string $id
      * @return mixed
      */
-    public function getItem($id)
+    public function getItem(string $id): mixed
     {
         $sql         = $this->db->createSql();
         $placeholder = $sql->getPlaceholder();
@@ -254,9 +254,9 @@ class Db extends AbstractAdapter
      * Determine if the item exist in cache
      *
      * @param  string $id
-     * @return boolean
+     * @return bool
      */
-    public function hasItem($id)
+    public function hasItem(string $id): bool
     {
         $sql         = $this->db->createSql();
         $placeholder = $sql->getPlaceholder();
@@ -291,7 +291,7 @@ class Db extends AbstractAdapter
      * @param  string $id
      * @return Db
      */
-    public function deleteItem($id)
+    public function deleteItem(string $id): Db
     {
         $sql         = $this->db->createSql();
         $placeholder = $sql->getPlaceholder();
@@ -316,11 +316,12 @@ class Db extends AbstractAdapter
      *
      * @return Db
      */
-    public function clear()
+    public function clear(): Db
     {
         $sql = $this->db->createSql();
         $sql->delete($this->table);
         $this->db->query($sql);
+
         return $this;
     }
 
@@ -329,7 +330,7 @@ class Db extends AbstractAdapter
      *
      * @return Db
      */
-    public function destroy()
+    public function destroy(): Db
     {
         $this->clear();
         return $this;
@@ -341,7 +342,7 @@ class Db extends AbstractAdapter
      * @param  string $table
      * @return Db
      */
-    public function setTable($table)
+    public function setTable(string $table): Db
     {
         $this->table = $table;
         return $this;
@@ -352,7 +353,7 @@ class Db extends AbstractAdapter
      *
      * @return void
      */
-    protected function createTable()
+    protected function createTable(): void
     {
         $schema = $this->db->createSchema();
         $schema->create($this->table)

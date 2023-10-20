@@ -4,7 +4,7 @@
  *
  * @link       https://github.com/popphp/popphp-framework
  * @author     Nick Sagona, III <dev@nolainteractive.com>
- * @copyright  Copyright (c) 2009-2023 NOLA Interactive, LLC. (http://www.nolainteractive.com)
+ * @copyright  Copyright (c) 2009-2024 NOLA Interactive, LLC. (http://www.nolainteractive.com)
  * @license    http://www.popphp.org/license     New BSD License
  */
 
@@ -19,9 +19,9 @@ namespace Pop\Cache\Adapter;
  * @category   Pop
  * @package    Pop\Cache
  * @author     Nick Sagona, III <dev@nolainteractive.com>
- * @copyright  Copyright (c) 2009-2023 NOLA Interactive, LLC. (http://www.nolainteractive.com)
+ * @copyright  Copyright (c) 2009-2024 NOLA Interactive, LLC. (http://www.nolainteractive.com)
  * @license    http://www.popphp.org/license     New BSD License
- * @version    3.4.0
+ * @version    4.0.0
  */
 class Apc extends AbstractAdapter
 {
@@ -34,7 +34,7 @@ class Apc extends AbstractAdapter
      * @param  int $ttl
      * @throws Exception
      */
-    public function __construct($ttl = 0)
+    public function __construct(int $ttl = 0)
     {
         parent::__construct($ttl);
         if (!function_exists('apcu_cache_info')) {
@@ -47,7 +47,7 @@ class Apc extends AbstractAdapter
      *
      * @return array
      */
-    public function getInfo()
+    public function getInfo(): array
     {
         return apcu_cache_info();
     }
@@ -58,7 +58,7 @@ class Apc extends AbstractAdapter
      * @param  string $id
      * @return int
      */
-    public function getItemTtl($id)
+    public function getItemTtl(string $id): int
     {
         $cacheValue = apcu_fetch($id);
         $ttl        = 0;
@@ -75,14 +75,14 @@ class Apc extends AbstractAdapter
      *
      * @param  string $id
      * @param  mixed  $value
-     * @param  int    $ttl
+     * @param  ?int   $ttl
      * @return Apc
      */
-    public function saveItem($id, $value, $ttl = null)
+    public function saveItem(string $id, mixed $value, ?int $ttl = null): Apc
     {
         $cacheValue = [
             'start' => time(),
-            'ttl'   => (null !== $ttl) ? (int)$ttl : $this->ttl,
+            'ttl'   => ($ttl !== null) ? $ttl : $this->ttl,
             'value' => $value
         ];
 
@@ -97,7 +97,7 @@ class Apc extends AbstractAdapter
      * @param  string $id
      * @return mixed
      */
-    public function getItem($id)
+    public function getItem(string $id): mixed
     {
         $cacheValue = apcu_fetch($id);
         $value      = false;
@@ -116,9 +116,9 @@ class Apc extends AbstractAdapter
      * Determine if the item exist in cache
      *
      * @param  string $id
-     * @return boolean
+     * @return bool
      */
-    public function hasItem($id)
+    public function hasItem(string $id): bool
     {
         return ($this->getItem($id) !== false);
     }
@@ -129,7 +129,7 @@ class Apc extends AbstractAdapter
      * @param  string $id
      * @return Apc
      */
-    public function deleteItem($id)
+    public function deleteItem(string $id): Apc
     {
         apcu_delete($id);
         return $this;
@@ -140,7 +140,7 @@ class Apc extends AbstractAdapter
      *
      * @return Apc
      */
-    public function clear()
+    public function clear(): Apc
     {
         apcu_clear_cache();
         return $this;
@@ -151,7 +151,7 @@ class Apc extends AbstractAdapter
      *
      * @return Apc
      */
-    public function destroy()
+    public function destroy(): Apc
     {
         $this->clear();
         return $this;

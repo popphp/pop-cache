@@ -4,7 +4,7 @@
  *
  * @link       https://github.com/popphp/popphp-framework
  * @author     Nick Sagona, III <dev@nolainteractive.com>
- * @copyright  Copyright (c) 2009-2023 NOLA Interactive, LLC. (http://www.nolainteractive.com)
+ * @copyright  Copyright (c) 2009-2024 NOLA Interactive, LLC. (http://www.nolainteractive.com)
  * @license    http://www.popphp.org/license     New BSD License
  */
 
@@ -19,9 +19,9 @@ namespace Pop\Cache\Adapter;
  * @category   Pop
  * @package    Pop\Cache
  * @author     Nick Sagona, III <dev@nolainteractive.com>
- * @copyright  Copyright (c) 2009-2023 NOLA Interactive, LLC. (http://www.nolainteractive.com)
+ * @copyright  Copyright (c) 2009-2024 NOLA Interactive, LLC. (http://www.nolainteractive.com)
  * @license    http://www.popphp.org/license     New BSD License
- * @version    3.4.0
+ * @version    4.0.0
  */
 interface AdapterInterface
 {
@@ -32,14 +32,14 @@ interface AdapterInterface
      * @param  int $ttl
      * @return AdapterInterface
      */
-    public function setTtl($ttl);
+    public function setTtl(int $ttl): AdapterInterface;
 
     /**
      * Get the global time-to-live for the cache object
      *
      * @return int
      */
-    public function getTtl();
+    public function getTtl(): int;
 
     /**
      * Get the time-to-live for an item in cache
@@ -47,17 +47,17 @@ interface AdapterInterface
      * @param  string $id
      * @return int
      */
-    public function getItemTtl($id);
+    public function getItemTtl(string $id): int;
 
     /**
      * Save an item to cache
      *
      * @param  string $id
      * @param  mixed  $value
-     * @param  int    $ttl
-     * @return void
+     * @param  ?int   $ttl
+     * @return AdapterInterface
      */
-    public function saveItem($id, $value, $ttl = null);
+    public function saveItem(string $id, mixed $value, ?int $ttl = null): AdapterInterface;
 
     /**
      * Get an item from cache
@@ -65,36 +65,36 @@ interface AdapterInterface
      * @param  string $id
      * @return mixed
      */
-    public function getItem($id);
+    public function getItem(string $id): mixed;
 
     /**
      * Determine if the item exist in cache
      *
      * @param  string $id
-     * @return boolean
+     * @return bool
      */
-    public function hasItem($id);
+    public function hasItem(string $id): bool;
 
     /**
      * Delete a value in cache
      *
      * @param  string $id
-     * @return void
+     * @return AdapterInterface
      */
-    public function deleteItem($id);
+    public function deleteItem(string $id): AdapterInterface;
 
     /**
      * Clear all stored values from cache
      *
-     * @return void
+     * @return AdapterInterface
      */
-    public function clear();
+    public function clear(): AdapterInterface;
 
     /**
      * Destroy cache resource
      *
-     * @return void
+     * @return AdapterInterface
      */
-    public function destroy();
+    public function destroy(): AdapterInterface;
 
 }
