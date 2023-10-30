@@ -11,11 +11,11 @@ pop-cache
 * [Install](#install)
 * [Quickstart](#quickstart)
 * [APC](#apc)
-* [File](#file)
 * [Memcached](#memcached)
 * [Redis](#redis)
-* [Session](#session)
+* [File](#file)
 * [Database](#database)
+* [Session](#session)
 
 Overview
 --------
