@@ -108,8 +108,8 @@ $cache = new Cache(new Apc(300));
 
 [Top](#pop-cache)
 
-Memcache
---------
+Memcached
+---------
 
 Using the Memcached adapter requires Memcached to be correctly set up in the environment.
 
