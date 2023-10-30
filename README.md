@@ -63,9 +63,9 @@ use Pop\Cache\Adapter\File;
 // Passing the file adapter the location on disk and the TTL
 $cache = new Cache(new Adapter\File('/path/to/my/cache/dir', 300));
 
-$cache->saveItem('foo', $myData);
+$cache->saveItem('foo', $data);
 
-$foo = $cache->getItem('foo');
+$data = $cache->getItem('foo');
 ```
 
 ### Check if the cache has an item
