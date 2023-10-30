@@ -184,7 +184,7 @@ class Cache implements \ArrayAccess
     /**
      * Clear all stored values from cache
      *
-     * @return
+     * @return void
      */
     public function clear(): void
     {
