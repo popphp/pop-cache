@@ -161,7 +161,9 @@ use Pop\Cache\Cache;
 use Pop\Cache\Adapter;
 use Pop\Db\Db;
 
-$cache = new Cache(new Adapter\Db(Db::sqliteConnect(['database' => __DIR__ . '/tmp/cache.sqlite']), 300));
+$cache = new Cache(
+    new Adapter\Db(Db::sqliteConnect(['database' => __DIR__ . '/tmp/cache.sqlite']), 300)
+);
 ```
 
 [Top](#pop-cache)
