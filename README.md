@@ -27,7 +27,7 @@ and what's available, an application can use one of the following cache adapters
 * Memcached (caching service)
 * Redis (caching service)
 * File (directory on disk)
-* Db (database caching)
+* Database (database caching)
 * Session (short-term caching in session)
 
 `pop-cache` is a component of the [Pop PHP Framework](http://www.popphp.org/).
@@ -158,11 +158,11 @@ the `pop-db` component.
 
 ```php
 use Pop\Cache\Cache;
-use Pop\Cache\Adapter;
+use Pop\Cache\Adapter\Database;
 use Pop\Db\Db;
 
 $cache = new Cache(
-    new Adapter\Db(Db::sqliteConnect(['database' => __DIR__ . '/tmp/cache.sqlite']), 300)
+    new Database(Db::sqliteConnect(['database' => __DIR__ . '/tmp/cache.sqlite']), 300)
 );
 ```
 
