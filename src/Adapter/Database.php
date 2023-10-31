@@ -25,7 +25,7 @@ use Pop\Db\Adapter;
  * @license    http://www.popphp.org/license     New BSD License
  * @version    4.0.0
  */
-class Db extends AbstractAdapter
+class Database extends AbstractAdapter
 {
 
     /**
@@ -73,9 +73,9 @@ class Db extends AbstractAdapter
      * Set the current cache db adapter.
      *
      * @param  Adapter\AbstractAdapter $db
-     * @return Db
+     * @return Database
      */
-    public function setDb(Adapter\AbstractAdapter $db): Db
+    public function setDb(Adapter\AbstractAdapter $db): Database
     {
         $this->db = $db;
         return $this;
@@ -135,9 +135,9 @@ class Db extends AbstractAdapter
      * @param  string $id
      * @param  mixed  $value
      * @param  ?int   $ttl
-     * @return Db
+     * @return Database
      */
-    public function saveItem(string $id, mixed $value, ?int $ttl = null): Db
+    public function saveItem(string $id, mixed $value, ?int $ttl = null): Database
     {
         // Determine if the value already exists.
         $sql         = $this->db->createSql();
@@ -289,9 +289,9 @@ class Db extends AbstractAdapter
      * Delete a value in cache
      *
      * @param  string $id
-     * @return Db
+     * @return Database
      */
-    public function deleteItem(string $id): Db
+    public function deleteItem(string $id): Database
     {
         $sql         = $this->db->createSql();
         $placeholder = $sql->getPlaceholder();
@@ -314,9 +314,9 @@ class Db extends AbstractAdapter
     /**
      * Clear all stored values from cache
      *
-     * @return Db
+     * @return Database
      */
-    public function clear(): Db
+    public function clear(): Database
     {
         $sql = $this->db->createSql();
         $sql->delete($this->table);
@@ -328,9 +328,9 @@ class Db extends AbstractAdapter
     /**
      * Destroy cache resource
      *
-     * @return Db
+     * @return Database
      */
-    public function destroy(): Db
+    public function destroy(): Database
     {
         $this->clear();
         return $this;
@@ -340,9 +340,9 @@ class Db extends AbstractAdapter
      * Set the cache db table
      *
      * @param  string $table
-     * @return Db
+     * @return Database
      */
-    public function setTable(string $table): Db
+    public function setTable(string $table): Database
     {
         $this->table = $table;
         return $this;

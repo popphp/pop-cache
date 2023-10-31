@@ -6,7 +6,7 @@ use Pop\Cache\Adapter;
 use Pop\Db\Db;
 use PHPUnit\Framework\TestCase;
 
-class DbTest extends TestCase
+class DatabaseTest extends TestCase
 {
 
     public function testConstructor()
@@ -14,15 +14,15 @@ class DbTest extends TestCase
         chmod(__DIR__ . '/tmp', 0777);
         touch(__DIR__ . '/tmp/cache.sqlite');
         chmod(__DIR__ . '/tmp/cache.sqlite', 0777);
-        $cache = new Adapter\Db(Db::sqliteConnect(['database' => __DIR__ . '/tmp/cache.sqlite']));
-        $this->assertInstanceOf('Pop\Cache\Adapter\Db', $cache);
+        $cache = new Adapter\Database(Db::sqliteConnect(['database' => __DIR__ . '/tmp/cache.sqlite']));
+        $this->assertInstanceOf('Pop\Cache\Adapter\Database', $cache);
         $this->assertInstanceOf('Pop\Db\Adapter\Sqlite', $cache->getDb());
         $this->assertEquals('pop_cache', $cache->getTable());
     }
 
     public function testSaveAndLoad()
     {
-        $cache = new Adapter\Db(Db::sqliteConnect(['database' => __DIR__ . '/tmp/cache.sqlite']));
+        $cache = new Adapter\Database(Db::sqliteConnect(['database' => __DIR__ . '/tmp/cache.sqlite']));
         $cache->saveItem('foo', 'bar', 300);
         $this->assertEquals('bar', $cache->getItem('foo'));
         $this->assertEquals(300, $cache->getItemTtl('foo'));
@@ -31,7 +31,7 @@ class DbTest extends TestCase
 
     public function testGetExpiredItem()
     {
-        $cache = new Adapter\Db(Db::sqliteConnect(['database' => __DIR__ . '/tmp/cache.sqlite']));
+        $cache = new Adapter\Database(Db::sqliteConnect(['database' => __DIR__ . '/tmp/cache.sqlite']));
         $cache->saveItem('foo', 'bar', -1);
         $this->assertFalse($cache->getItem('foo'));
         $cache->clear();
@@ -40,7 +40,7 @@ class DbTest extends TestCase
 
     public function testRemove()
     {
-        $cache = new Adapter\Db(Db::sqliteConnect(['database' => __DIR__ . '/tmp/cache.sqlite']));
+        $cache = new Adapter\Database(Db::sqliteConnect(['database' => __DIR__ . '/tmp/cache.sqlite']));
         $cache->saveItem('foo', 'bar');
         $this->assertEquals('bar', $cache->getItem('foo'));
         $cache->deleteItem('foo');
