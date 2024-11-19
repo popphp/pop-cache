@@ -11,13 +11,13 @@
         "pop",
         "pop php"
     ],
-    "homepage": "https://www.popphp.org/",
+    "homepage": "https://github.com/popphp/pop-cache",
     "license": "BSD-3-Clause",
     "authors": [
         {
             "name": "Nick Sagona",
             "email": "dev@noladev.com",
-            "homepage": "http://www.nolainteractive.com/"
+            "homepage": "https://www.popphp.org/"
         }
     ],
     "require": {
