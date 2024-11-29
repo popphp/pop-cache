@@ -21,7 +21,7 @@ namespace Pop\Cache\Adapter;
  * @author     Nick Sagona, III <dev@noladev.com>
  * @copyright  Copyright (c) 2009-2025 NOLA Interactive, LLC.
  * @license    https://www.popphp.org/license     New BSD License
- * @version    4.0.0
+ * @version    4.0.1
  */
 class Memcached extends AbstractAdapter
 {

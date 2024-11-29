@@ -43,7 +43,7 @@ Install `pop-cache` using Composer.
 Or, require it in your composer.json file
 
     "require": {
-        "popphp/pop-cache" : "^4.0.0"
+        "popphp/pop-cache" : "^4.0.1"
     }
 
 [Top](#pop-cache)

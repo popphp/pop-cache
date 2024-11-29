@@ -20,9 +20,6 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    #- name: Validate composer.json and composer.lock
-    #  run: composer validate
-
     - name: Start Memcached
       uses: niden/actions-memcached@v7
 
@@ -37,6 +34,9 @@ jobs:
         php-version: ${{ matrix.php-versions }}
         extensions: redis, apcu, memcached
         ini-values: apc.enable_cli=1
+
+    #- name: Validate composer.json and composer.lock
+    #  run: composer validate
 
     - name: Cache Composer packages
       id: composer-cache
