@@ -4,7 +4,7 @@
  *
  * @link       https://github.com/popphp/popphp-framework
  * @author     Nick Sagona, III <dev@noladev.com>
- * @copyright  Copyright (c) 2009-2026 NOLA Interactive, LLC.
+ * @copyright  Copyright (c) 2009-2027 NOLA Interactive, LLC.
  * @license    https://www.popphp.org/license     New BSD License
  */
 
@@ -13,15 +13,17 @@
  */
 namespace Pop\Cache\Adapter;
 
+use Pop\Cache\Clock;
+
 /**
  * Cache adapter abstract class
  *
  * @category   Pop
  * @package    Pop\Cache
  * @author     Nick Sagona, III <dev@noladev.com>
- * @copyright  Copyright (c) 2009-2026 NOLA Interactive, LLC.
+ * @copyright  Copyright (c) 2009-2027 NOLA Interactive, LLC.
  * @license    https://www.popphp.org/license     New BSD License
- * @version    4.0.3
+ * @version    5.0.0
  */
 abstract class AbstractAdapter implements AdapterInterface
 {
@@ -33,15 +35,23 @@ abstract class AbstractAdapter implements AdapterInterface
     protected int $ttl = 0;
 
     /**
+     * Clock used to resolve the current time
+     * @var Clock\ClockInterface
+     */
+    protected Clock\ClockInterface $clock;
+
+    /**
      * Constructor
      *
      * Instantiate the cache adapter object
      *
-     * @param  int $ttl
+     * @param  int                  $ttl
+     * @param  Clock\ClockInterface $clock
      */
-    public function __construct(int $ttl = 0)
+    public function __construct(int $ttl = 0, Clock\ClockInterface $clock = new Clock\SystemClock())
     {
         $this->setTtl($ttl);
+        $this->clock = $clock;
     }
 
     /**
@@ -70,9 +80,10 @@ abstract class AbstractAdapter implements AdapterInterface
      * Get the time-to-live for an item in cache
      *
      * @param  string $id
+     * @param  int    $default
      * @return int
      */
-    abstract public function getItemTtl(string $id): int;
+    abstract public function getItemTtl(string $id, int $default = 0): int;
 
     /**
      * Save an item to cache
@@ -88,9 +99,10 @@ abstract class AbstractAdapter implements AdapterInterface
      * Get an item from cache
      *
      * @param  string $id
+     * @param  mixed  $default
      * @return mixed
      */
-    abstract public function getItem(string $id): mixed;
+    abstract public function getItem(string $id, mixed $default = false): mixed;
 
     /**
      * Determine if the item exist in cache
@@ -121,5 +133,27 @@ abstract class AbstractAdapter implements AdapterInterface
      * @return AbstractAdapter
      */
     abstract public function destroy(): AbstractAdapter;
+
+    /**
+     * Atomically increment a counter in cache, creating it at $initial if it doesn't exist
+     *
+     * @param  string $id
+     * @param  int    $amount
+     * @param  int    $initial
+     * @param  ?int   $ttl
+     * @return int
+     */
+    abstract public function incrementItem(string $id, int $amount = 1, int $initial = 0, ?int $ttl = null): int;
+
+    /**
+     * Atomically decrement a counter in cache, creating it at $initial if it doesn't exist
+     *
+     * @param  string $id
+     * @param  int    $amount
+     * @param  int    $initial
+     * @param  ?int   $ttl
+     * @return int
+     */
+    abstract public function decrementItem(string $id, int $amount = 1, int $initial = 0, ?int $ttl = null): int;
 
 }

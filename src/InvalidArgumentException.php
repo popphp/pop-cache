@@ -11,10 +11,10 @@
 /**
  * @namespace
  */
-namespace Pop\Cache\Adapter;
+namespace Pop\Cache;
 
 /**
- * Cache exception class
+ * Cache invalid argument exception class
  *
  * @category   Pop
  * @package    Pop\Cache
@@ -23,4 +23,4 @@ namespace Pop\Cache\Adapter;
  * @license    https://www.popphp.org/license     New BSD License
  * @version    5.0.0
  */
-class Exception extends \Exception {}
+class InvalidArgumentException extends \InvalidArgumentException implements \Psr\SimpleCache\InvalidArgumentException, \Psr\Cache\InvalidArgumentException {}

@@ -14,7 +14,7 @@
 namespace Pop\Cache\Adapter;
 
 /**
- * Cache adapter interface
+ * Null adapter cache class
  *
  * @category   Pop
  * @package    Pop\Cache
@@ -23,23 +23,8 @@ namespace Pop\Cache\Adapter;
  * @license    https://www.popphp.org/license     New BSD License
  * @version    5.0.0
  */
-interface AdapterInterface
+class NullAdapter extends AbstractAdapter
 {
-
-    /**
-     * Set the global time-to-live for the cache adapter
-     *
-     * @param  int $ttl
-     * @return AdapterInterface
-     */
-    public function setTtl(int $ttl): AdapterInterface;
-
-    /**
-     * Get the global time-to-live for the cache object
-     *
-     * @return int
-     */
-    public function getTtl(): int;
 
     /**
      * Get the time-to-live for an item in cache
@@ -48,7 +33,10 @@ interface AdapterInterface
      * @param  int    $default
      * @return int
      */
-    public function getItemTtl(string $id, int $default = 0): int;
+    public function getItemTtl(string $id, int $default = 0): int
+    {
+        return $default;
+    }
 
     /**
      * Save an item to cache
@@ -56,9 +44,12 @@ interface AdapterInterface
      * @param  string $id
      * @param  mixed  $value
      * @param  ?int   $ttl
-     * @return AdapterInterface
+     * @return NullAdapter
      */
-    public function saveItem(string $id, mixed $value, ?int $ttl = null): AdapterInterface;
+    public function saveItem(string $id, mixed $value, ?int $ttl = null): NullAdapter
+    {
+        return $this;
+    }
 
     /**
      * Get an item from cache
@@ -67,7 +58,10 @@ interface AdapterInterface
      * @param  mixed  $default
      * @return mixed
      */
-    public function getItem(string $id, mixed $default = false): mixed;
+    public function getItem(string $id, mixed $default = false): mixed
+    {
+        return $default;
+    }
 
     /**
      * Determine if the item exist in cache
@@ -75,32 +69,45 @@ interface AdapterInterface
      * @param  string $id
      * @return bool
      */
-    public function hasItem(string $id): bool;
+    public function hasItem(string $id): bool
+    {
+        return false;
+    }
 
     /**
      * Delete a value in cache
      *
      * @param  string $id
-     * @return AdapterInterface
+     * @return NullAdapter
      */
-    public function deleteItem(string $id): AdapterInterface;
+    public function deleteItem(string $id): NullAdapter
+    {
+        return $this;
+    }
 
     /**
      * Clear all stored values from cache
      *
-     * @return AdapterInterface
+     * @return NullAdapter
      */
-    public function clear(): AdapterInterface;
+    public function clear(): NullAdapter
+    {
+        return $this;
+    }
 
     /**
      * Destroy cache resource
      *
-     * @return AdapterInterface
+     * @return NullAdapter
      */
-    public function destroy(): AdapterInterface;
+    public function destroy(): NullAdapter
+    {
+        return $this;
+    }
 
     /**
-     * Atomically increment a counter in cache, creating it at $initial if it doesn't exist
+     * Always returns $initial + $amount — nothing is ever actually persisted, so every call behaves as if
+     * the counter had just been created and immediately incremented once; there is no "first call" state.
      *
      * @param  string $id
      * @param  int    $amount
@@ -108,10 +115,14 @@ interface AdapterInterface
      * @param  ?int   $ttl
      * @return int
      */
-    public function incrementItem(string $id, int $amount = 1, int $initial = 0, ?int $ttl = null): int;
+    public function incrementItem(string $id, int $amount = 1, int $initial = 0, ?int $ttl = null): int
+    {
+        return $initial + $amount;
+    }
 
     /**
-     * Atomically decrement a counter in cache, creating it at $initial if it doesn't exist
+     * Always returns $initial - $amount — nothing is ever actually persisted, so every call behaves as if
+     * the counter had just been created and immediately decremented once; there is no "first call" state.
      *
      * @param  string $id
      * @param  int    $amount
@@ -119,6 +130,9 @@ interface AdapterInterface
      * @param  ?int   $ttl
      * @return int
      */
-    public function decrementItem(string $id, int $amount = 1, int $initial = 0, ?int $ttl = null): int;
+    public function decrementItem(string $id, int $amount = 1, int $initial = 0, ?int $ttl = null): int
+    {
+        return $initial - $amount;
+    }
 
 }

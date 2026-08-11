@@ -11,10 +11,10 @@
 /**
  * @namespace
  */
-namespace Pop\Cache\Adapter;
+namespace Pop\Cache\Clock;
 
 /**
- * Cache exception class
+ * System clock class
  *
  * @category   Pop
  * @package    Pop\Cache
@@ -23,4 +23,17 @@ namespace Pop\Cache\Adapter;
  * @license    https://www.popphp.org/license     New BSD License
  * @version    5.0.0
  */
-class Exception extends \Exception {}
+class SystemClock implements ClockInterface
+{
+
+    /**
+     * Get the current time as a Unix timestamp
+     *
+     * @return int
+     */
+    public function now(): int
+    {
+        return time();
+    }
+
+}

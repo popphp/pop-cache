@@ -13,10 +13,8 @@
  */
 namespace Pop\Cache\Adapter;
 
-use Pop\Cache\Clock;
-
 /**
- * Session adapter cache class
+ * Memory adapter cache class
  *
  * @category   Pop
  * @package    Pop\Cache
@@ -25,37 +23,14 @@ use Pop\Cache\Clock;
  * @license    https://www.popphp.org/license     New BSD License
  * @version    5.0.0
  */
-class Session extends AbstractAdapter
+class Memory extends AbstractAdapter
 {
 
     /**
-     * Cache namespace
-     * @var string
+     * Cached items, keyed by sha1($id)
+     * @var array
      */
-    protected string $namespace = 'pop_cache';
-
-    /**
-     * Constructor
-     *
-     * Instantiate the cache session object
-     *
-     * @param  int $ttl
-     * @param  string $namespace
-     * @param  Clock\ClockInterface $clock
-     */
-    public function __construct(
-        int $ttl = 0, string $namespace = 'pop_cache', Clock\ClockInterface $clock = new Clock\SystemClock()
-    )
-    {
-        parent::__construct($ttl, $clock);
-        $this->namespace = $namespace;
-        if (session_id() == '') {
-            session_start();
-        }
-        if (!isset($_SESSION['_POP_CACHE_'])) {
-            $_SESSION['_POP_CACHE_'] = [];
-        }
-    }
+    protected array $items = [];
 
     /**
      * Get the time-to-live for an item in cache
@@ -66,12 +41,11 @@ class Session extends AbstractAdapter
      */
     public function getItemTtl(string $id, int $default = 0): int
     {
+        $key = sha1($id);
         $ttl = $default;
-        $key = $this->key($id);
 
-        if (isset($_SESSION['_POP_CACHE_'][$key])) {
-            $cacheValue = unserialize($_SESSION['_POP_CACHE_'][$key], ['allowed_classes' => false]);
-            $ttl        = $cacheValue['ttl'];
+        if (isset($this->items[$key])) {
+            $ttl = $this->items[$key]['ttl'];
         }
 
         return $ttl;
@@ -83,15 +57,16 @@ class Session extends AbstractAdapter
      * @param  string $id
      * @param  mixed  $value
      * @param  ?int   $ttl
-     * @return Session
+     * @return Memory
      */
-    public function saveItem(string $id, mixed $value, ?int $ttl = null): Session
+    public function saveItem(string $id, mixed $value, ?int $ttl = null): Memory
     {
-        $_SESSION['_POP_CACHE_'][$this->key($id)] = serialize([
+        $this->items[sha1($id)] = [
             'start' => $this->clock->now(),
             'ttl'   => ($ttl !== null) ? $ttl : $this->ttl,
             'value' => $value
-        ]);
+        ];
+
         return $this;
     }
 
@@ -104,11 +79,11 @@ class Session extends AbstractAdapter
      */
     public function getItem(string $id, mixed $default = false): mixed
     {
+        $key   = sha1($id);
         $value = $default;
-        $key   = $this->key($id);
 
-        if (isset($_SESSION['_POP_CACHE_'][$key])) {
-            $cacheValue = unserialize($_SESSION['_POP_CACHE_'][$key], ['allowed_classes' => false]);
+        if (isset($this->items[$key])) {
+            $cacheValue = $this->items[$key];
             if (($cacheValue['ttl'] == 0) || (($this->clock->now() - $cacheValue['start']) <= $cacheValue['ttl'])) {
                 $value = $cacheValue['value'];
             } else {
@@ -127,12 +102,12 @@ class Session extends AbstractAdapter
      */
     public function hasItem(string $id): bool
     {
+        $key    = sha1($id);
         $result = false;
-        $key    = $this->key($id);
 
-        if (isset($_SESSION['_POP_CACHE_'][$key])) {
-            $cacheValue = unserialize($_SESSION['_POP_CACHE_'][$key], ['allowed_classes' => false]);
-            $result = (($cacheValue['ttl'] == 0) || (($this->clock->now() - $cacheValue['start']) <= $cacheValue['ttl']));
+        if (isset($this->items[$key])) {
+            $cacheValue = $this->items[$key];
+            $result     = (($cacheValue['ttl'] == 0) || (($this->clock->now() - $cacheValue['start']) <= $cacheValue['ttl']));
         }
 
         return $result;
@@ -142,43 +117,33 @@ class Session extends AbstractAdapter
      * Delete a value in cache
      *
      * @param  string $id
-     * @return Session
+     * @return Memory
      */
-    public function deleteItem(string $id): Session
+    public function deleteItem(string $id): Memory
     {
-        $key = $this->key($id);
-        if (isset($_SESSION['_POP_CACHE_'][$key])) {
-            unset($_SESSION['_POP_CACHE_'][$key]);
-        }
+        unset($this->items[sha1($id)]);
         return $this;
     }
 
     /**
      * Clear all stored values from cache
      *
-     * @return Session
+     * @return Memory
      */
-    public function clear(): Session
+    public function clear(): Memory
     {
-        $prefix = $this->namespace . ':';
-        foreach (array_keys($_SESSION['_POP_CACHE_']) as $k) {
-            if (str_starts_with((string)$k, $prefix)) {
-                unset($_SESSION['_POP_CACHE_'][$k]);
-            }
-        }
+        $this->items = [];
         return $this;
     }
 
     /**
      * Destroy cache resource
      *
-     * @return Session
+     * @return Memory
      */
-    public function destroy(): Session
+    public function destroy(): Memory
     {
-        $_SESSION = null;
-        session_unset();
-        session_destroy();
+        $this->clear();
         return $this;
     }
 
@@ -186,7 +151,7 @@ class Session extends AbstractAdapter
      * Atomically increment a counter in cache, creating it at $initial if it doesn't exist
      *
      * Non-atomic read-modify-write through the same start/ttl/value envelope used by saveItem()/getItem() —
-     * Session has no native atomic primitive, so a counter here is an ordinary cached integer, fully
+     * Memory has no native atomic primitive, so a counter here is an ordinary cached integer, fully
      * interoperable with getItem()/hasItem()/deleteItem().
      *
      * @param  string $id
@@ -214,7 +179,7 @@ class Session extends AbstractAdapter
      * Atomically decrement a counter in cache, creating it at $initial if it doesn't exist
      *
      * Non-atomic read-modify-write through the same start/ttl/value envelope used by saveItem()/getItem() —
-     * Session has no native atomic primitive, so a counter here is an ordinary cached integer, fully
+     * Memory has no native atomic primitive, so a counter here is an ordinary cached integer, fully
      * interoperable with getItem()/hasItem()/deleteItem().
      *
      * @param  string $id
@@ -238,19 +203,4 @@ class Session extends AbstractAdapter
         return $value;
     }
 
-    /**
-     * Build the namespaced storage key for an item id
-     *
-     * Unlike Apc/Memcached/Redis, this adapter's clear() deletes matching keys directly by prefix
-     * (a plain PHP array can be enumerated and filtered cheaply) rather than via generational
-     * versioning, so this key has no version segment — there's no backend-scan limitation here to
-     * work around.
-     *
-     * @param  string $id
-     * @return string
-     */
-    protected function key(string $id): string
-    {
-        return $this->namespace . ':' . sha1($id);
-    }
 }
