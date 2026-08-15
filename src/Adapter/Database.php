@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * Pop PHP Framework (https://www.popphp.org/)
  *
@@ -132,7 +133,7 @@ class Database extends AbstractAdapter
 
         $rows = $this->db->fetchAll();
 
-        return (isset($rows[0]) && isset($rows[0]['ttl'])) ? $rows[0]['ttl'] : $default;
+        return (isset($rows[0]) && isset($rows[0]['ttl'])) ? (int)$rows[0]['ttl'] : $default;
     }
 
     /**

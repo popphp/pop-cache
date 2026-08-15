@@ -16,7 +16,6 @@ jobs:
     strategy:
       matrix:
         php-versions: [ '8.4', '8.5' ]
-        phpunit-versions: ['12.5.0']
 
     services:
       mysql:
@@ -52,7 +51,6 @@ jobs:
       uses: shivammathur/setup-php@v2
       with:
         php-version: ${{ matrix.php-versions }}
-        tools: phpunit:${{ matrix.phpunit-versions }}
         extensions: redis, apcu, memcached, mysqli, pgsql, sqlite3
         ini-values: apc.enable_cli=1
 
@@ -77,3 +75,6 @@ jobs:
 
     - name: Run test suite
       run: composer run-script test
+
+    - name: Run analyse suite
+      run: composer run-script analyse
