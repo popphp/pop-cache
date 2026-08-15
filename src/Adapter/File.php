@@ -144,7 +144,7 @@ class File extends AbstractAdapter
 
         if (file_exists($fileId)) {
             $cacheValue = unserialize(file_get_contents($fileId), ['allowed_classes' => false]);
-            if (($cacheValue['ttl'] == 0) || (($this->clock->now() - $cacheValue['start']) <= $cacheValue['ttl'])) {
+            if ($this->isFresh($cacheValue)) {
                 $value = $cacheValue['value'];
             } else {
                 $this->deleteItem($id);
@@ -167,7 +167,7 @@ class File extends AbstractAdapter
 
         if (file_exists($fileId)) {
             $cacheValue = unserialize(file_get_contents($fileId), ['allowed_classes' => false]);
-            $result     = (($cacheValue['ttl'] == 0) || (($this->clock->now() - $cacheValue['start']) <= $cacheValue['ttl']));
+            $result     = $this->isFresh($cacheValue);
         }
 
         return $result;

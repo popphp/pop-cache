@@ -31,6 +31,11 @@ class Cache implements \ArrayAccess, \Psr\SimpleCache\CacheInterface
 {
 
     /**
+     * Traits
+     */
+    use ValidatesKey;
+
+    /**
      * Cache adapter
      * @var ?Adapter\AdapterInterface
      */
@@ -56,22 +61,6 @@ class Cache implements \ArrayAccess, \Psr\SimpleCache\CacheInterface
     {
         $this->adapter = $adapter;
         $this->clock   = $clock;
-    }
-
-    /**
-     * Validate a cache key per PSR-16 (throws on reserved characters or an empty string)
-     *
-     * @param  string $key
-     * @throws InvalidArgumentException
-     * @return void
-     */
-    protected function validateKey(string $key): void
-    {
-        if (($key === '') || (preg_match('#[{}()/\\\\@:]#', $key) === 1)) {
-            throw new InvalidArgumentException(
-                'Error: The cache key contains one or more reserved characters, or is empty.'
-            );
-        }
     }
 
     /**

@@ -110,7 +110,7 @@ class Session extends AbstractAdapter
 
         if (isset($_SESSION['_POP_CACHE_'][$key])) {
             $cacheValue = unserialize($_SESSION['_POP_CACHE_'][$key], ['allowed_classes' => false]);
-            if (($cacheValue['ttl'] == 0) || (($this->clock->now() - $cacheValue['start']) <= $cacheValue['ttl'])) {
+            if ($this->isFresh($cacheValue)) {
                 $value = $cacheValue['value'];
             } else {
                 $this->deleteItem($id);
@@ -133,7 +133,7 @@ class Session extends AbstractAdapter
 
         if (isset($_SESSION['_POP_CACHE_'][$key])) {
             $cacheValue = unserialize($_SESSION['_POP_CACHE_'][$key], ['allowed_classes' => false]);
-            $result = (($cacheValue['ttl'] == 0) || (($this->clock->now() - $cacheValue['start']) <= $cacheValue['ttl']));
+            $result = $this->isFresh($cacheValue);
         }
 
         return $result;

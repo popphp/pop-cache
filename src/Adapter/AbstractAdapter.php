@@ -78,6 +78,17 @@ abstract class AbstractAdapter implements AdapterInterface
     }
 
     /**
+     * Determine if a cache envelope (with 'start'/'ttl' keys) is still within its time-to-live
+     *
+     * @param  array $envelope
+     * @return bool
+     */
+    protected function isFresh(array $envelope): bool
+    {
+        return ($envelope['ttl'] == 0) || (($this->clock->now() - $envelope['start']) <= $envelope['ttl']);
+    }
+
+    /**
      * Get the time-to-live for an item in cache
      *
      * @param  string $id

@@ -108,22 +108,35 @@ class Database extends AbstractAdapter
     }
 
     /**
-     * Get the time-to-live for an item in cache
+     * Resolve the driver-specific placeholder tokens for an ordered list of parameter names
      *
-     * @param  string $id
-     * @param  int    $default
-     * @return int
+     * @param  Db\Sql $sql
+     * @param  array  $names
+     * @return array
      */
-    public function getItemTtl(string $id, int $default = 0): int
+    protected function resolvePlaceholders(Db\Sql $sql, array $names): array
     {
-        $sql         = $this->db->createSql();
         $placeholder = $sql->getPlaceholder();
 
         if ($placeholder == ':') {
-            $placeholder .= 'key';
+            return array_map(fn($name) => ':' . $name, $names);
         } else if ($placeholder == '$') {
-            $placeholder .= '1';
+            return array_map(fn($i) => '$' . ($i + 1), array_keys($names));
         }
+
+        return array_fill(0, count($names), '?');
+    }
+
+    /**
+     * Fetch the raw stored row for an item id, or null if it doesn't exist
+     *
+     * @param  string $id
+     * @return ?array
+     */
+    protected function findRow(string $id): ?array
+    {
+        $sql = $this->db->createSql();
+        [$placeholder] = $this->resolvePlaceholders($sql, ['key']);
 
         $sql->select()->from($this->table)->where('key = ' . $placeholder);
 
@@ -133,7 +146,21 @@ class Database extends AbstractAdapter
 
         $rows = $this->db->fetchAll();
 
-        return (isset($rows[0]) && isset($rows[0]['ttl'])) ? (int)$rows[0]['ttl'] : $default;
+        return $rows[0] ?? null;
+    }
+
+    /**
+     * Get the time-to-live for an item in cache
+     *
+     * @param  string $id
+     * @param  int    $default
+     * @return int
+     */
+    public function getItemTtl(string $id, int $default = 0): int
+    {
+        $row = $this->findRow($id);
+
+        return (isset($row['ttl'])) ? (int)$row['ttl'] : $default;
     }
 
     /**
@@ -157,21 +184,13 @@ class Database extends AbstractAdapter
         ];
 
         if (($dbType == Db\Sql::MYSQL) || ($dbType == Db\Sql::SQLITE) || ($dbType == Db\Sql::PGSQL)) {
-            $placeholder = $sql->getPlaceholder();
-
-            if ($placeholder == ':') {
-                $placeholders = [':key', ':start', ':ttl', ':value'];
-            } else if ($placeholder == '$') {
-                $placeholders = ['$1', '$2', '$3', '$4'];
-            } else {
-                $placeholders = ['?', '?', '?', '?'];
-            }
+            [$keyPh, $startPh, $ttlPh, $valuePh] = $this->resolvePlaceholders($sql, ['key', 'start', 'ttl', 'value']);
 
             $insert = $sql->insert($this->table)->values([
-                'key'   => $placeholders[0],
-                'start' => $placeholders[1],
-                'ttl'   => $placeholders[2],
-                'value' => $placeholders[3]
+                'key'   => $keyPh,
+                'start' => $startPh,
+                'ttl'   => $ttlPh,
+                'value' => $valuePh
             ]);
 
             if ($dbType == Db\Sql::MYSQL) {
@@ -187,44 +206,30 @@ class Database extends AbstractAdapter
             // SQL Server: pop-db has no MERGE/upsert support for this driver, so fall back to
             // select-then-insert-or-update, narrowing (not eliminating) the race with a transaction.
             $this->db->transaction(function() use ($sql, $key, $params) {
-                $placeholder        = $sql->getPlaceholder();
-                $lookupPlaceholder  = ($placeholder == ':') ? ':key' : (($placeholder == '$') ? '$1' : '?');
+                [$lookupPlaceholder] = $this->resolvePlaceholders($sql, ['key']);
 
                 $sql->select()->from($this->table)->where('key = ' . $lookupPlaceholder);
                 $this->db->prepare($sql)->bindParams(['key' => $key])->execute();
                 $rows = $this->db->fetchAll();
 
                 $sql->reset();
-                $placeholder = $sql->getPlaceholder();
 
                 if (count($rows) == 0) {
-                    if ($placeholder == ':') {
-                        $placeholders = [':key', ':start', ':ttl', ':value'];
-                    } else if ($placeholder == '$') {
-                        $placeholders = ['$1', '$2', '$3', '$4'];
-                    } else {
-                        $placeholders = ['?', '?', '?', '?'];
-                    }
+                    [$keyPh, $startPh, $ttlPh, $valuePh] = $this->resolvePlaceholders($sql, ['key', 'start', 'ttl', 'value']);
                     $sql->insert($this->table)->values([
-                        'key'   => $placeholders[0],
-                        'start' => $placeholders[1],
-                        'ttl'   => $placeholders[2],
-                        'value' => $placeholders[3]
+                        'key'   => $keyPh,
+                        'start' => $startPh,
+                        'ttl'   => $ttlPh,
+                        'value' => $valuePh
                     ]);
                     $this->db->prepare($sql)->bindParams($params)->execute();
                 } else {
-                    if ($placeholder == ':') {
-                        $placeholders = [':start', ':ttl', ':value', ':key'];
-                    } else if ($placeholder == '$') {
-                        $placeholders = ['$1', '$2', '$3', '$4'];
-                    } else {
-                        $placeholders = ['?', '?', '?', '?'];
-                    }
+                    [$startPh, $ttlPh, $valuePh, $keyPh] = $this->resolvePlaceholders($sql, ['start', 'ttl', 'value', 'key']);
                     $sql->update($this->table)->values([
-                        'start' => $placeholders[0],
-                        'ttl'   => $placeholders[1],
-                        'value' => $placeholders[2]
-                    ])->where('key = ' . $placeholders[3]);
+                        'start' => $startPh,
+                        'ttl'   => $ttlPh,
+                        'value' => $valuePh
+                    ])->where('key = ' . $keyPh);
                     $this->db->prepare($sql)->bindParams([
                         'start' => $params['start'],
                         'ttl'   => $params['ttl'],
@@ -247,29 +252,13 @@ class Database extends AbstractAdapter
      */
     public function getItem(string $id, mixed $default = false): mixed
     {
-        $sql         = $this->db->createSql();
-        $placeholder = $sql->getPlaceholder();
-        $value       = $default;
-
-        if ($placeholder == ':') {
-            $placeholder .= 'key';
-        } else if ($placeholder == '$') {
-            $placeholder .= '1';
-        }
-
-        $sql->select()->from($this->table)->where('key = ' . $placeholder);
-
-        $this->db->prepare($sql)
-            ->bindParams(['key' => sha1($id)])
-            ->execute();
-
-        $rows = $this->db->fetchAll();
+        $value = $default;
+        $row   = $this->findRow($id);
 
         // If the value is found, check expiration and return.
-        if (count($rows) > 0) {
-            $cacheValue = $rows[0];
-            if (($cacheValue['ttl'] == 0) || (($this->clock->now() - $cacheValue['start']) <= $cacheValue['ttl'])) {
-                $value = unserialize($cacheValue['value'], ['allowed_classes' => false]);
+        if ($row !== null) {
+            if ($this->isFresh($row)) {
+                $value = unserialize($row['value'], ['allowed_classes' => false]);
             } else {
                 $this->deleteItem($id);
             }
@@ -286,31 +275,9 @@ class Database extends AbstractAdapter
      */
     public function hasItem(string $id): bool
     {
-        $sql         = $this->db->createSql();
-        $placeholder = $sql->getPlaceholder();
-        $result      = false;
+        $row = $this->findRow($id);
 
-        if ($placeholder == ':') {
-            $placeholder .= 'key';
-        } else if ($placeholder == '$') {
-            $placeholder .= '1';
-        }
-
-        $sql->select()->from($this->table)->where('key = ' . $placeholder);
-
-        $this->db->prepare($sql)
-            ->bindParams(['key' => sha1($id)])
-            ->execute();
-
-        $rows = $this->db->fetchAll();
-
-        // If the value is found, check expiration and return.
-        if (count($rows) > 0) {
-            $cacheValue = $rows[0];
-            $result = (($cacheValue['ttl'] == 0) || (($this->clock->now() - $cacheValue['start']) <= $cacheValue['ttl']));
-        }
-
-        return $result;
+        return ($row !== null) && $this->isFresh($row);
     }
 
     /**
@@ -321,14 +288,8 @@ class Database extends AbstractAdapter
      */
     public function deleteItem(string $id): Database
     {
-        $sql         = $this->db->createSql();
-        $placeholder = $sql->getPlaceholder();
-
-        if ($placeholder == ':') {
-            $placeholder .= 'key';
-        } else if ($placeholder == '$') {
-            $placeholder .= '1';
-        }
+        $sql = $this->db->createSql();
+        [$placeholder] = $this->resolvePlaceholders($sql, ['key']);
 
         $sql->delete($this->table)->where('key = ' . $placeholder);
 

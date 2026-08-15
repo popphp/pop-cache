@@ -30,6 +30,11 @@ class Redis extends AbstractAdapter
 {
 
     /**
+     * Traits
+     */
+    use NamespacedVersionedKeys;
+
+    /**
      * Redis object
      * @var ?\Redis
      */
@@ -152,7 +157,7 @@ class Redis extends AbstractAdapter
             $cacheValue = unserialize($cacheValue, ['allowed_classes' => false]);
             if (is_array($cacheValue) && array_key_exists('start', $cacheValue) &&
                 array_key_exists('ttl', $cacheValue) && array_key_exists('value', $cacheValue)) {
-                if (($cacheValue['ttl'] == 0) || (($this->clock->now() - $cacheValue['start']) <= $cacheValue['ttl'])) {
+                if ($this->isFresh($cacheValue)) {
                     $value = $cacheValue['value'];
                 } else {
                     $this->deleteItem($id);
@@ -299,35 +304,14 @@ class Redis extends AbstractAdapter
     }
 
     /**
-     * Get the storage key for this namespace's version counter
+     * Fetch the raw version value from redis, or false if it isn't set
      *
-     * @return string
+     * @param  string $key
+     * @return mixed
      */
-    protected function versionKey(): string
+    protected function fetchVersion(string $key): mixed
     {
-        return $this->namespace . '::version';
-    }
-
-    /**
-     * Resolve the current version for this namespace, defaulting to 1
-     *
-     * @return int
-     */
-    protected function resolveVersion(): int
-    {
-        $version = $this->redis->get($this->versionKey());
-        return ($version !== false) ? (int)$version : 1;
-    }
-
-    /**
-     * Build the versioned, namespaced storage key for an item id
-     *
-     * @param  string $id
-     * @return string
-     */
-    protected function key(string $id): string
-    {
-        return $this->namespace . ':v' . $this->resolveVersion() . ':' . sha1($id);
+        return $this->redis->get($key);
     }
 
 }

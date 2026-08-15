@@ -85,7 +85,7 @@ class Memory extends AbstractAdapter
 
         if (isset($this->items[$key])) {
             $cacheValue = $this->items[$key];
-            if (($cacheValue['ttl'] == 0) || (($this->clock->now() - $cacheValue['start']) <= $cacheValue['ttl'])) {
+            if ($this->isFresh($cacheValue)) {
                 $value = $cacheValue['value'];
             } else {
                 $this->deleteItem($id);
@@ -108,7 +108,7 @@ class Memory extends AbstractAdapter
 
         if (isset($this->items[$key])) {
             $cacheValue = $this->items[$key];
-            $result     = (($cacheValue['ttl'] == 0) || (($this->clock->now() - $cacheValue['start']) <= $cacheValue['ttl']));
+            $result     = $this->isFresh($cacheValue);
         }
 
         return $result;

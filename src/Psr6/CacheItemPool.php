@@ -16,6 +16,7 @@ namespace Pop\Cache\Psr6;
 
 use Pop\Cache\Adapter;
 use Pop\Cache\InvalidArgumentException;
+use Pop\Cache\ValidatesKey;
 
 /**
  * PSR-6 cache item pool class
@@ -29,6 +30,11 @@ use Pop\Cache\InvalidArgumentException;
  */
 class CacheItemPool implements \Psr\Cache\CacheItemPoolInterface
 {
+
+    /**
+     * Traits
+     */
+    use ValidatesKey;
 
     /**
      * Cache adapter
@@ -69,22 +75,6 @@ class CacheItemPool implements \Psr\Cache\CacheItemPoolInterface
             $this->commit();
         } catch (\Throwable $e) {
             // Destructors must not throw
-        }
-    }
-
-    /**
-     * Validate a cache key per PSR-6 (throws on reserved characters or an empty string)
-     *
-     * @param  string $key
-     * @throws InvalidArgumentException
-     * @return void
-     */
-    protected function validateKey(string $key): void
-    {
-        if (($key === '') || (preg_match('#[{}()/\\\\@:]#', $key) === 1)) {
-            throw new InvalidArgumentException(
-                'Error: The cache key contains one or more reserved characters, or is empty.'
-            );
         }
     }
 
