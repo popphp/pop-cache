@@ -148,12 +148,17 @@ class Cache implements \ArrayAccess, \Psr\SimpleCache\CacheInterface
      * Save items to cache
      *
      * @param  array $items
+     * @throws InvalidArgumentException
      * @return void
      */
     public function saveItems(array $items): void
     {
+        foreach (array_keys($items) as $id) {
+            $this->validateKey((string)$id);
+        }
+
         foreach ($items as $id => $value) {
-            $this->adapter->saveItem($id, $value);
+            $this->adapter->saveItem((string)$id, $value);
         }
     }
 
@@ -567,10 +572,15 @@ class Cache implements \ArrayAccess, \Psr\SimpleCache\CacheInterface
      * Delete items in cache
      *
      * @param  array $ids
+     * @throws InvalidArgumentException
      * @return void
      */
     public function deleteItems(array $ids): void
     {
+        foreach ($ids as $id) {
+            $this->validateKey($id);
+        }
+
         foreach ($ids as $id) {
             $this->adapter->deleteItem($id);
         }

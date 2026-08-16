@@ -345,6 +345,44 @@ class CacheTest extends TestCase
         $this->assertFalse($cache->getItem('test2'));
     }
 
+    public function testSaveItemsThrowsForReservedCharacterKey()
+    {
+        $cache = new Cache(new Adapter\Memory());
+        $this->expectException(InvalidArgumentException::class);
+        $cache->saveItems(['good' => 1, 'bad{key}' => 2]);
+    }
+
+    public function testSaveItemsIsAllOrNothingWhenAKeyIsInvalid()
+    {
+        $cache = new Cache(new Adapter\Memory());
+        try {
+            $cache->saveItems(['good' => 1, 'bad{key}' => 2]);
+            $this->fail('Expected InvalidArgumentException was not thrown.');
+        } catch (InvalidArgumentException $e) {
+            $this->assertFalse($cache->hasItem('good'));
+        }
+    }
+
+    public function testDeleteItemsThrowsForReservedCharacterKey()
+    {
+        $cache = new Cache(new Adapter\Memory());
+        $this->expectException(InvalidArgumentException::class);
+        $cache->deleteItems(['good', 'bad{key}']);
+    }
+
+    public function testDeleteItemsIsAllOrNothingWhenAKeyIsInvalid()
+    {
+        $cache = new Cache(new Adapter\Memory());
+        $cache->saveItem('good', 1);
+
+        try {
+            $cache->deleteItems(['good', 'bad{key}']);
+            $this->fail('Expected InvalidArgumentException was not thrown.');
+        } catch (InvalidArgumentException $e) {
+            $this->assertTrue($cache->hasItem('good'));
+        }
+    }
+
     public function testRemove()
     {
         $cache = new Cache(new Adapter\File(__DIR__ . '/cache', 60));
