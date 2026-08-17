@@ -44,7 +44,6 @@ class RedisTest extends TestCase
     {
         $cache  = new Redis(namespace: 'hash-test');
         $method = new \ReflectionMethod($cache, 'key');
-        $method->setAccessible(true);
         $key = $method->invoke($cache, 'some-id');
 
         $this->assertStringNotContainsString('some-id', $key);
@@ -170,7 +169,6 @@ class RedisTest extends TestCase
     {
         $cache  = new Redis(namespace: 'nonnum-test');
         $method = new \ReflectionMethod($cache, 'key');
-        $method->setAccessible(true);
         $key = $method->invoke($cache, 'not-a-number');
 
         $cache->redis()->set($key, 'hello');
@@ -190,7 +188,6 @@ class RedisTest extends TestCase
             $cache->incrementItem('counter', 1, 41);
 
             $method = new \ReflectionMethod($cache, 'key');
-            $method->setAccessible(true);
             $key = $method->invoke($cache, 'counter');
 
             $this->assertSame('42', $cache->redis()->get($key));
@@ -206,7 +203,6 @@ class RedisTest extends TestCase
             $cache->incrementItem('counter', 1, 0, 60);
 
             $method = new \ReflectionMethod($cache, 'key');
-            $method->setAccessible(true);
             $key = $method->invoke($cache, 'counter');
 
             $this->assertEquals(60, $cache->redis()->ttl($key));

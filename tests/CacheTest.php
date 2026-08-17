@@ -37,7 +37,6 @@ class CacheTest extends TestCase
     {
         $cache  = new Cache(new Adapter\Memory());
         $method = new \ReflectionMethod($cache, 'validateKey');
-        $method->setAccessible(true);
 
         $this->expectException(InvalidArgumentException::class);
         $method->invoke($cache, 'has{brace');
@@ -47,7 +46,6 @@ class CacheTest extends TestCase
     {
         $cache  = new Cache(new Adapter\Memory());
         $method = new \ReflectionMethod($cache, 'validateKey');
-        $method->setAccessible(true);
 
         $this->expectException(InvalidArgumentException::class);
         $method->invoke($cache, '');
@@ -57,7 +55,6 @@ class CacheTest extends TestCase
     {
         $cache  = new Cache(new Adapter\Memory());
         $method = new \ReflectionMethod($cache, 'validateKey');
-        $method->setAccessible(true);
 
         $method->invoke($cache, 'a-perfectly-normal-key');
         $this->assertTrue(true);
@@ -82,7 +79,6 @@ class CacheTest extends TestCase
     {
         $cache  = new Cache(new Adapter\Memory());
         $method = new \ReflectionMethod($cache, 'validateKey');
-        $method->setAccessible(true);
 
         $this->expectException(InvalidArgumentException::class);
         $method->invoke($cache, $key);
@@ -856,7 +852,6 @@ class CacheTest extends TestCase
     {
         $cache    = new Cache(new Adapter\Memory());
         $property = new \ReflectionProperty($cache, 'clock');
-        $property->setAccessible(true);
 
         $this->assertInstanceOf(SystemClock::class, $property->getValue($cache));
     }
@@ -866,7 +861,6 @@ class CacheTest extends TestCase
         $clock    = new MutableClock(12345);
         $cache    = new Cache(new Adapter\Memory(), $clock);
         $property = new \ReflectionProperty($cache, 'clock');
-        $property->setAccessible(true);
 
         $this->assertSame($clock, $property->getValue($cache));
     }

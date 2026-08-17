@@ -38,7 +38,6 @@ class ApcTest extends TestCase
     {
         $cache  = new Apc(60, 'hash-test');
         $method = new \ReflectionMethod($cache, 'key');
-        $method->setAccessible(true);
         $key = $method->invoke($cache, 'some-id');
 
         $this->assertStringNotContainsString('some-id', $key);
@@ -136,7 +135,6 @@ class ApcTest extends TestCase
     {
         $cache  = new Apc(60, 'nonnum-test');
         $method = new \ReflectionMethod($cache, 'key');
-        $method->setAccessible(true);
         $key = $method->invoke($cache, 'not-a-number');
 
         apcu_store($key, 'hello');
@@ -149,7 +147,6 @@ class ApcTest extends TestCase
     {
         $cache  = new Apc(60, 'nonnum-decr-test');
         $method = new \ReflectionMethod($cache, 'key');
-        $method->setAccessible(true);
         $key = $method->invoke($cache, 'not-a-number');
 
         apcu_store($key, 'hello');
@@ -164,7 +161,6 @@ class ApcTest extends TestCase
         $cache->incrementItem('counter', 1, 0, 60);
 
         $method = new \ReflectionMethod($cache, 'key');
-        $method->setAccessible(true);
         $key = $method->invoke($cache, 'counter');
 
         $info = apcu_key_info($key);
@@ -177,7 +173,6 @@ class ApcTest extends TestCase
         $cache->incrementItem('counter', 1, 41);
 
         $method = new \ReflectionMethod($cache, 'key');
-        $method->setAccessible(true);
         $key = $method->invoke($cache, 'counter');
 
         $this->assertSame(42, apcu_fetch($key));

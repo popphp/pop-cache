@@ -57,7 +57,6 @@ class AbstractAdapterTest extends TestCase
     {
         $adapter  = $this->makeAdapter();
         $property = new \ReflectionProperty($adapter, 'clock');
-        $property->setAccessible(true);
 
         $this->assertInstanceOf(SystemClock::class, $property->getValue($adapter));
     }
@@ -67,7 +66,6 @@ class AbstractAdapterTest extends TestCase
         $clock    = new MutableClock(1000);
         $adapter  = $this->makeAdapter(0, $clock);
         $property = new \ReflectionProperty($adapter, 'clock');
-        $property->setAccessible(true);
 
         $this->assertSame($clock, $property->getValue($adapter));
     }

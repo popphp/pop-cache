@@ -40,7 +40,6 @@ class MemcachedTest extends TestCase
     {
         $cache  = new Memcached(namespace: 'hash-test');
         $method = new \ReflectionMethod($cache, 'key');
-        $method->setAccessible(true);
         $key = $method->invoke($cache, 'some-id');
 
         $this->assertStringNotContainsString('some-id', $key);
@@ -159,7 +158,6 @@ class MemcachedTest extends TestCase
     {
         $cache  = new Memcached(namespace: 'nonnum-test');
         $method = new \ReflectionMethod($cache, 'key');
-        $method->setAccessible(true);
         $key = $method->invoke($cache, 'not-a-number');
 
         $cache->memcached()->set($key, 'hello');
@@ -176,7 +174,6 @@ class MemcachedTest extends TestCase
     {
         $cache  = new Memcached(namespace: 'nonnum-decr-test');
         $method = new \ReflectionMethod($cache, 'key');
-        $method->setAccessible(true);
         $key = $method->invoke($cache, 'not-a-number');
 
         $cache->memcached()->set($key, 'hello');
@@ -196,7 +193,6 @@ class MemcachedTest extends TestCase
             $cache->incrementItem('counter', 1, 41);
 
             $method = new \ReflectionMethod($cache, 'key');
-            $method->setAccessible(true);
             $key = $method->invoke($cache, 'counter');
 
             $this->assertSame(42, $cache->memcached()->get($key));
@@ -216,7 +212,6 @@ class MemcachedTest extends TestCase
             $this->assertFalse($cache->memcached()->get(
                 (function () use ($cache) {
                     $method = new \ReflectionMethod($cache, 'key');
-                    $method->setAccessible(true);
                     return $method->invoke($cache, 'counter');
                 })()
             ));

@@ -45,7 +45,6 @@ namespace Pop\Cache\Test {
         {
             $cache  = new Session(60, 'hash-test');
             $method = new \ReflectionMethod($cache, 'key');
-            $method->setAccessible(true);
             $key = $method->invoke($cache, 'some-id');
 
             $this->assertStringNotContainsString('some-id', $key);
