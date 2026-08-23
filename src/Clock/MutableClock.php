@@ -5,7 +5,7 @@ declare(strict_types=1);
  *
  * @link       https://github.com/popphp/popphp-framework
  * @author     Nick Sagona, III <nick@popphp.org>
- * @copyright  Copyright (c) 2009-2027 NOLA Interactive, LLC.
+ * @copyright  Copyright (c) 2009-2026 Nick Sagona, III
  * @license    https://www.popphp.org/license     New BSD License
  */
 
@@ -23,7 +23,7 @@ namespace Pop\Cache\Clock;
  * @category   Pop
  * @package    Pop\Cache
  * @author     Nick Sagona, III <nick@popphp.org>
- * @copyright  Copyright (c) 2009-2027 NOLA Interactive, LLC.
+ * @copyright  Copyright (c) 2009-2026 Nick Sagona, III
  * @license    https://www.popphp.org/license     New BSD License
  * @version    5.0.0
  */
