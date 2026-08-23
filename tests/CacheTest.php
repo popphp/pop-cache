@@ -33,6 +33,21 @@ class CacheTest extends TestCase
         $this->assertTrue($cache->isAvailable('null'));
     }
 
+    public function testGetAvailableAdaptersApcMatchesWhatApcAdapterRequires()
+    {
+        // Adapter\Apc guards its constructor on apcu_cache_info(), not the legacy apc_cache_info()
+        // (APCu never defines the legacy apc_* names), so the availability probe must agree with that.
+        $this->assertEquals(
+            function_exists('apcu_cache_info'),
+            Cache::isAvailable('apc'),
+            'Cache::isAvailable(\'apc\') must reflect apcu_cache_info() availability, since that is what Adapter\Apc actually requires.'
+        );
+        $this->assertEquals(
+            function_exists('apcu_cache_info'),
+            Cache::getAvailableAdapters()['apc']
+        );
+    }
+
     public function testValidateKeyThrowsForReservedCharacters()
     {
         $cache  = new Cache(new Adapter\Memory());

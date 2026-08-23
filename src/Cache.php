@@ -73,7 +73,7 @@ class Cache implements \ArrayAccess, \Psr\SimpleCache\CacheInterface
         $pdoDrivers = (class_exists('Pdo', false)) ? \PDO::getAvailableDrivers() : [];
 
         return [
-            'apc'       => (function_exists('apc_cache_info')),
+            'apc'       => (function_exists('apcu_cache_info')),
             'file'      => true,
             'memcached' => (class_exists('Memcached', false)),
             'memory'    => true,
