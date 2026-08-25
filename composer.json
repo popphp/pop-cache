@@ -30,6 +30,11 @@
         "phpunit/phpunit": "^12.5.0",
         "phpstan/phpstan": "^2.2"
     },
+    "suggest": {
+        "ext-apcu": "For using the Apc adapter",
+        "ext-memcached": "For using the Memcached adapter",
+        "ext-redis": "For using the Redis adapter"
+    },
     "autoload": {
         "psr-4": {
             "Pop\\Cache\\": "src/"
