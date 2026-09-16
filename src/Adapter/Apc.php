@@ -165,7 +165,7 @@ class Apc extends AbstractAdapter
      */
     public function clear(): Apc
     {
-        apcu_store($this->versionKey(), $this->resolveVersion() + 1, 0);
+        apcu_store($this->versionKey(), $this->nextVersion(), 0);
         return $this;
     }
 

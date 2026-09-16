@@ -226,7 +226,7 @@ class Memcached extends AbstractAdapter
      */
     public function clear(): Memcached
     {
-        $this->memcached->set($this->versionKey(), $this->resolveVersion() + 1, 0);
+        $this->memcached->set($this->versionKey(), $this->nextVersion(), 0);
         return $this;
     }
 
